@@ -1,4 +1,4 @@
-(ns demo.seven-gui-1-counter
+(ns demo.tutorial-7guis-1-counter
   (:require
     [hyperfiddle.electric :as e]
     [hyperfiddle.electric-dom2 :as dom]

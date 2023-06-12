@@ -1,4 +1,4 @@
-(ns demo.demo-10k-dom-elements
+(ns demo.demo-10k-dom
   (:require [hyperfiddle.electric :as e]
             [hyperfiddle.electric-dom2 :as dom]
             [missionary.core :as m]))
@@ -17,7 +17,7 @@
                   (fn unmount []
                     (dom/set-property! el "style" {:background-color nil}))))))
 
-(e/defn App []
+(e/defn Dom-10k-Elements []
   (e/client
     (dom/h1 (dom/text "10k dom elements (multiplayer)"))
     ; fixed width font + inline-block optimizes browser layout

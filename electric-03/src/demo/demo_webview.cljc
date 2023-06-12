@@ -1,4 +1,4 @@
-(ns demo.demo-4-webview
+(ns demo.demo-webview
   "Electric fullstack query/view composition with client/server transfer"
   (:require #?(:clj [datascript.core :as d])
             [hyperfiddle.electric :as e]
@@ -41,7 +41,7 @@
                     (dom/td (dom/text (e/server (:order/email !e))))
                     (dom/td (dom/text (e/server (:order/gender !e))))))))))))))
 
-(e/defn App []
+(e/defn Webview []
   (let [db (e/watch conn)] ; reactive "database value"
     (Teeshirt-orders-view. db)))
 
@@ -49,5 +49,5 @@
   #?(:clj (d/transact conn [{:db/id 2 :order/email "bob2@example.com"}]))
   #?(:clj (d/transact conn [{:order/email "dan@example.com"}]))
   #?(:clj (d/transact conn [{:order/email "erin@example.com"}]))
-  #?(:clj (d/transact conn [{:order/email "frank@example.com"}])))
-
+  #?(:clj (d/transact conn [{:order/email "frank@example.com"}]))
+  )

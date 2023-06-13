@@ -21,6 +21,7 @@
    `demo.demo-color/Color
    `demo.demo-svg/SVG
    `demo.demo-tic-tac-toe/TicTacToe
+   `demo.demo-student/Student
    #_`demo.demo-reagent-interop/ReagentInterop])
 
 (def seven-guis

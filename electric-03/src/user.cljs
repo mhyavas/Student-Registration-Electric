@@ -1,12 +1,10 @@
 (ns ^:dev/always user ; Electric currently needs to rebuild everything when any file changes. Will fix
   (:require
     user-main
-    app.todo-list
     hyperfiddle.electric
     hyperfiddle.electric-dom2))
 
-(def electric-main (hyperfiddle.electric/boot (user-main/Main.)))                                 ;)
-
+(def electric-main (hyperfiddle.electric/boot (user-main/Main.)))
 (defonce reactor nil)
 
 (defn ^:dev/after-load ^:export start! []

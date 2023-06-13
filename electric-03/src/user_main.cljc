@@ -7,6 +7,7 @@
             [hyperfiddle.history :as history]
             [demo.demo-index :as demos]
 
+            demo.demo-student
             demo.demo-two-clocks
             demo.demo-toggle
             demo.demo-system-properties
@@ -23,10 +24,10 @@
             demo.demo-todos-simple
             wip.demo-todos-advanced-old
             wip.demo-todos-advanced
+            demo.tutorial-7guis-1-counter
+            demo.tutorial-7guis-2-temperature
             demo.tutorial-7guis-4-timer
             demo.tutorial-7guis-5-crud
-            demo.tutorial-7guis-2-temperature
-            demo.tutorial-7guis-1-counter
             demo.demo-virtual-scroll
             demo.demo-color
             demo.demo-tic-tac-toe
@@ -75,9 +76,12 @@
       `demo.tutorial-7guis-4-timer/Timer demo.tutorial-7guis-4-timer/Timer
       `demo.tutorial-7guis-5-crud/CRUD demo.tutorial-7guis-5-crud/CRUD
       `demo.demo-tic-tac-toe/TicTacToe demo.demo-tic-tac-toe/TicTacToe
+
+      `demo.demo-student/Student demo.demo-student/Student
       `demo.demo-svg/SVG demo.demo-svg/SVG
       `demo.tutorial-blinker/Blinker demo.tutorial-blinker/Blinker
       `wip.tracing/TracingDemo wip.tracing/TracingDemo
+
       ;`demo.demo-reagent-interop/ReagentInterop (when react-available demo.demo-reagent-interop/ReagentInterop)
       ;::demos/dennis-exception-leak wip.dennis-exception-leak/App2
       ;`wip.demo-stage-ui4/CrudForm wip.demo-stage-ui4/CrudForm

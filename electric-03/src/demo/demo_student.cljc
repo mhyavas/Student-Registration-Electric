@@ -1,66 +1,55 @@
 (ns demo.demo-student
   (:require
     contrib.str
-    #?(:clj [datomic.api :as d])
+    [clojure.string :as str]
     [hyperfiddle.electric :as e]
     [hyperfiddle.electric-dom2 :as dom]
     [hyperfiddle.electric-ui4 :as ui]
-    [missionary.core :as m]))
-
-;;; Datomic plumbing
-#?(:clj
-   (defn next-db< [conn]
-     (let [q (d/tx-report-queue conn)]
-       (m/observe (fn [!]
-                    (! (d/db conn))
-                    (let [t (Thread. ^Runnable
-                                     #(when (try (! (:db-after (.take ^java.util.concurrent.LinkedBlockingQueue q)))
-                                                 true
-                                                 (catch InterruptedException _))
-                                        (recur)))]
-                      (.start t)
-                      #(doto t .interrupt .join)))))))
+    [missionary.core :as m]
+    [clojure.string :as str]))
 
 
-#?(:clj (defonce !db (atom nil)))
-#?(:clj (defonce !taker nil))
-#?(:clj (defn init-conn []
-          (let [uri "datomic:mem://db6"]
-            #_ (d/delete-database uri)
-            #_(d/create-database uri)
-            (let [conn (d/connect uri)]
-              #_(d/transact conn schema)
-              (when !taker (!taker))
-              (alter-var-root #'!taker (fn [_] ((m/reduce #(reset! !db %2) nil (next-db< conn)) identity identity)))
-              conn))))
-
-#_#?(:clj (defonce !conn (init-conn)))
-#_(e/def db)                                                  ; server
-#_(e/def transact!) ; server
-
-
+(def db
+  [{:id 1
+    :name "Can Ali"
+    :department :department/matematik}
+   {:id 2
+    :name "Ali Deniz"
+    :department :department/fizik}
+   ])
 
 #?(:clj
-   (defn query-departments [db filter]
-     {:pre [filter]}
-     (case filter
-       :department/matematik (d/q '[:find (pull ?e [*]) :where [?e :student/id _] [?e :student/department :department/matematik]] db)
-       :department/fizik   (d/q '[:find (pull ?e [*]) :where [?e :student/id _] [?e :student/department :department/fizik]] db)
-       :department/sosyoloji    (d/q '[:find (pull ?e [*]) :where [?e :student/id _] [?e :student/department :department/sosyoloji]] db))))
-
-
-
-(defn query [] "TEST2")
-
-(e/defn MyComponent []
-        (dom/h1 (dom/text (e/server (query))))
-        (println 'component-did-mount)
-        (e/on-unmount #(println 'component-will-unmount)))
-
+   (defn student-filter [?s]
+     (->> db
+          (filter (fn [m] (str/includes? (m :name) (str ?s))))
+          (into []))))
 (e/defn Student []
         (e/client
-          (dom/h1 (dom/text "Student"))
-          (dom/div
-            ))) ; added and removed from the DOM every two seconds
+          (dom/h1 (dom/text "Student Registration"))
+          (let [!search (atom "")
+                search (e/watch !search)]
+            (e/server
+              (let [system-props (into [] (student-filter search))]
+                (e/client
+                  (dom/div (dom/props {:style {:color "gray"}}))
+                  (ui/input search (e/fn [name] (reset! !search name))
+                            (dom/props {:type "search" :placeholder "name"}))
+                  (dom/h2 (dom/text "Student List"))
+                  (dom/table
+                    (e/server
+                      (e/for [{:keys [id name department]} system-props]
+                                (e/client
+                                  (dom/tr
+                                    ((dom/td (dom/text id))
+                                     (dom/td (dom/text name))
+                                     (dom/td (dom/props {:style {:white-space :nowrap}}) (dom/text department))))))))))))))
 
 
+(comment
+(student-filter "Can")
+(defn student-filter [?s]
+  (->> db
+       (filter (fn [m] (str/includes? (m :name) (str ?s))))
+       (into [])))
+(student-filter "Can")
+)

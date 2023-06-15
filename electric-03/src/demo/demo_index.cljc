@@ -23,6 +23,7 @@
    `demo.demo-tic-tac-toe/TicTacToe
    `demo.demo-student/Student
    `demo.demo-student2/Student2
+   `demo.demo-studentDatomic/CreateStudent
    #_`demo.demo-reagent-interop/ReagentInterop])
 
 (def seven-guis

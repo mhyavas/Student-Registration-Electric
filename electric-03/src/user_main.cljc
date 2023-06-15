@@ -7,6 +7,7 @@
             [hyperfiddle.history :as history]
             [demo.demo-index :as demos]
 
+            demo.demo-studentDatomic
             demo.demo-student2
             demo.demo-student
             demo.demo-two-clocks
@@ -77,7 +78,7 @@
       `demo.tutorial-7guis-4-timer/Timer demo.tutorial-7guis-4-timer/Timer
       `demo.tutorial-7guis-5-crud/CRUD demo.tutorial-7guis-5-crud/CRUD
       `demo.demo-tic-tac-toe/TicTacToe demo.demo-tic-tac-toe/TicTacToe
-
+      `demo.demo-studentDatomic/CreateStudent demo.demo-studentDatomic/CreateStudent
       `demo.demo-student2/Student2 demo.demo-student2/Student2
       `demo.demo-student/Student demo.demo-student/Student
       `demo.demo-svg/SVG demo.demo-svg/SVG

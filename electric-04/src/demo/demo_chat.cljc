@@ -7,7 +7,7 @@
 
 #?(:clj (defonce !state (atom (list))))
 
-(e/defn App []
+(e/defn Chat []
   (e/client
     (try
       (dom/h1 (dom/text "Multiplayer chat app in 30 LOC"))

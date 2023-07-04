@@ -39,7 +39,7 @@
                             (e/server (swap! !msgs #(cons {::username username ::msg v} (take 9 %))))
                             (set! (.-value dom/node) "")))))))
 
-(e/defn App []
+(e/defn ChatExtended []
   (e/client
     (dom/h1 (dom/text "Multiplayer chat app with auth and presence"))
     (let [session-id (e/server (get-in hf/*http-request* [:headers "sec-websocket-key"]))

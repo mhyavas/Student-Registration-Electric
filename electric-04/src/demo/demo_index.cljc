@@ -5,12 +5,12 @@
             [hyperfiddle.history :as router])) ; for link only
 
 (def pages
-  [`demo.demo-1-hello-world/HelloWorld
+  [`demo.demo-hello-world/HelloWorld
    ::toggle
    ::two-clocks
    ::system-properties
    ::chat
-   ::chat-extended
+   ;::chat-extended
    ::webview
    ::todos-simple
    ::todomvc

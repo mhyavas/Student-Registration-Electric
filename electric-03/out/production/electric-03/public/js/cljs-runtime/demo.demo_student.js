@@ -1,0 +1,4 @@
+goog.provide('demo.demo_student');
+demo.demo_student.db = new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.PersistentArrayMap(null, 3, [new cljs.core.Keyword(null,"id","id",-1388402092),(1),new cljs.core.Keyword(null,"name","name",1843675177),"Can Ali",new cljs.core.Keyword(null,"department","department",-359157087),new cljs.core.Keyword("department","matematik","department/matematik",-396973042)], null),new cljs.core.PersistentArrayMap(null, 3, [new cljs.core.Keyword(null,"id","id",-1388402092),(2),new cljs.core.Keyword(null,"name","name",1843675177),"Ali Deniz",new cljs.core.Keyword(null,"department","department",-359157087),new cljs.core.Keyword("department","fizik","department/fizik",985019856)], null)], null);
+
+//# sourceMappingURL=demo.demo_student.js.map

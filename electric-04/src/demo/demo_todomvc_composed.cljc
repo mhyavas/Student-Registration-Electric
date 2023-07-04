@@ -1,10 +1,10 @@
 (ns demo.demo-todomvc-composed
   (:require
-   #?(:clj [datascript.core :as d])
-   [hyperfiddle.electric :as e]
-   [hyperfiddle.electric-dom2 :as dom]
-   [hyperfiddle.electric-ui4 :as ui]
-   [demo.demo-5-todomvc :as todomvc]))
+    #?(:clj [datascript.core :as d])
+    [hyperfiddle.electric :as e]
+    [hyperfiddle.electric-dom2 :as dom]
+    [hyperfiddle.electric-ui4 :as ui]
+    [demo.demo-todomvc :as todomvc]))
 
 (def !n #?(:clj (atom 1)))
 

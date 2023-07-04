@@ -3,7 +3,7 @@
   (:require [hyperfiddle.electric :as e]
             [hyperfiddle.electric-dom2 :as dom]))
 
-(e/defn App []
+(e/defn TwoClocks []
   (e/client
     (dom/h1 (dom/text "Two Clocks"))
 

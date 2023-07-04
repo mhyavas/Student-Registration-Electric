@@ -15,7 +15,7 @@
        (filter (fn [[k v]] (str/includes? (str/lower-case (str k)) (str/lower-case (str ?s)))))
        (into {}))))
 
-(e/defn App []
+(e/defn SystemProperties []
   (e/client
     (dom/h1 (dom/text "JVM System Properties search"))
     (let [!search (atom "")

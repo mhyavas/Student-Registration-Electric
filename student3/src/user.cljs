@@ -2,13 +2,14 @@
   (:require
     app.todo-list
     app.test2
+    app.test2-1
     hyperfiddle.electric
     hyperfiddle.electric-dom2))
 
 (def electric-main
   (hyperfiddle.electric/boot ; Electric macroexpansion - Clojure to signals compiler
     (binding [hyperfiddle.electric-dom2/node js/document.body]
-      (app.test2/CRUD.))))
+      (app.test2-1/CRUD.))))
 
 (defonce reactor nil)
 

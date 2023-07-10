@@ -23,10 +23,10 @@
                     :db/cardinality :db.cardinality/one}])
 
 
-#?(:clj (defonce !conn (d/create-conn schema-dept))) ; database on server
+#?(:clj (defonce !conn (d/create-conn {}))) ; database on server
 
 
-(e/def db) ; injected database ref; Electric defs are always dynamic
+(e/def db1) ; injected database ref; Electric defs are always dynamic
 
 (def !state (atom {:selected nil
                    :stage {:name ""
@@ -110,9 +110,8 @@
 
 
 (e/defn CRUD []
-        (e/server
-          (binding [db (e/watch !conn)]
-           (e/client
+          (e/client
+           (binding [db (e/watch !conn)]
              (let [state (e/watch !state)
                    selected (:selected state)]
 
@@ -176,12 +175,12 @@
                                    (dom/div (ui4/button (e/fn [] (set-id!)
                                                               (create!)
                                                               (apply (.-log js/console) (:names state))
-                                                              (CreateStudent! (:id (last (vals (get-in state [:names])))) (:name (last (vals (get-in state [:names])))) !conn)
+                                                              #_(CreateStudent! (:id (last (vals (get-in state [:names])))) (:name (last (vals (get-in state [:names])))) !conn)
                                                               #_(e/server (CreateStudent (:id (last (vals (get-in state [:names])))) (:name (last (vals (get-in state [:names])))) !conn))) (dom/text "Create")))
 
                                    (dom/text state)))))
-             (dom/text (query-test1 db))
-             #_(dom/text (e/server (query-test db)))))))
+             #_(dom/text (query-test db))
+             #_(dom/text (e/server (query-test db))))))
 
 
 

@@ -14,3 +14,4 @@ report.html
 .clj-kondo
 /target
 .idea
+errors.md

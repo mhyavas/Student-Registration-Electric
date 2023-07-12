@@ -3,6 +3,7 @@
     app.todo-list
     app.test2
     app.test2-1
+    app.test-filters
     hyperfiddle.electric
     hyperfiddle.electric-dom2))
 

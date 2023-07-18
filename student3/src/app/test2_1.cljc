@@ -141,13 +141,14 @@
                  names-map names-map))))
 
 #?(:clj (defn query-test [db dept]
-          (-> (d/q '[:find [(pull ?e [:student/id :student/name :student/department]) ...] :in $ ?dept
+          (-> (d/q '[:find [(pull ?e [:student/id :student/name :student/department]) ...]
+                     :in $ ?dept
                      :where [?e :student/department ?dept]]
-
                    db dept))))
 
 #?(:clj (defn query-course [db dept]
-          (-> (d/q '[:find [(pull ?e [:course/id :course/code :course/name :course/department]) ...] :in $ [?dept ...]
+          (-> (d/q '[:find [(pull ?e [:course/id :course/code :course/name :course/department]) ...]
+                     :in $ [?dept ...]
                      :where [?e :course/department ?dept]]
 
                    db dept))))
@@ -161,8 +162,6 @@
   (swap! !state (fn [state]
                   (assoc state :selected id
                                :stage (get-in state [:names id])))))
-
-
 
 
 (e/defn CRUD []
@@ -181,12 +180,6 @@
                                                          'd d g h'\n
                                                          'd d i k'\n
                                                          'j j j j'\n
-                                                         'o o z z'\n
-                                                         'o o z z'\n
-                                                         'o o m n'\n
-                                                         'l l m n'\n
-                                                         'l l t s'\n
-                                                         'l l r p'\n
                                                          'w w w w'\n"}})
                         (dom/span (dom/props {:style {:grid-area "a"}})
                                   (dom/text "Filter prefix:"))
@@ -231,7 +224,7 @@
                           (dom/span (dom/props {:style {:grid-area "i"}}) (dom/text "department"))
                           (ui4/input (:department stage) (e/fn [v] (set-department! v))
 
-                                     (dom/props {:style {:grid-area "k"}}))
+                           (dom/props {:style {:grid-area "k"}}))
                           (dom/div (dom/props
                                      {:style {:grid-area             "j"
                                               :display               :grid
@@ -240,121 +233,104 @@
                                    (dom/div (ui4/button (e/fn [] (set-id!)
                                                               (create!)
                                                               #_(apply (.-log js/console) (:names state))
-                                                              (e/server (CreateStudent (:id (last (vals (get-in state [:names])))) (:name (last (vals (get-in state [:names])))) (:department (last (vals (get-in state [:names])))) !conn))) (dom/text "Create"))))
+                                                              (e/server (CreateStudent (:id (last (vals (get-in state [:names]))))
+                                                                                       (:name (last (vals (get-in state [:names]))))
+                                                                                       (:department (last (vals (get-in state [:names]))))
+                                                                                       !conn)))
+                                                        (dom/text "Create"))))
 
 
 
-                          (dom/div (dom/props
-                                     {:style {:grid-area             "l"
-                                              :display               :grid
-                                              :grid-gap              "0.5rem"
-                                              :grid-template-columns "auto auto auto 1fr"}})
-                                   (dom/text (dom/props {:grid-area "o"}) "Student Filter by department name from DB")
-                                   (let [!filter-dept (atom ""), filter-dept (e/watch !filter-dept)]
-                                     (dom/span (dom/props {:grid-area "o"}) (dom/text "Department:"))
-                                     (ui4/input filter-dept (e/fn [v] (reset! !filter-dept v)))
+                          )
+                        )
+               (dom/div
+                 (let [!filter-dept (atom ""), filter-dept (e/watch !filter-dept)]
+                   (dom/span  (dom/text "Student Search by Department:"))
+                   (ui4/input filter-dept (e/fn [v] (reset! !filter-dept v)))
 
 
-                                     (dom/ul (dom/props {:style            {:grid-area "o"}
-                                                         :background-color :white
-                                                         :list-style-type  :none
-                                                         :padding          0
-                                                         :border           "1px gray solid"
-                                                         :height           "100%"})
-                                             (dom/table (dom/props {:style {:grid-area "o"}})
-                                                 (dom/th (dom/text "Id"))
-                                                 (dom/th (dom/text "Name"))
-                                                 (dom/th (dom/text "Department"))
-                                                 (e/for [entry (e/server (query-test db (keyword "department" filter-dept)))]
-                                                        (let [value entry]
+                   (dom/ul
+                     (dom/table
+                       (dom/th (dom/text "Id"))
+                       (dom/th (dom/text "Name"))
+                       (dom/th (dom/text "Department"))
+                       (e/for [entry (e/server (query-test db (keyword "department" filter-dept)))]
+                              (let [value entry]
 
-                                                          #_(dom/li (dom/text (:student/id value) ", " (:student/name value) "," (:student/department value)))
-                                                          (dom/tr (dom/props {:style {:border-style :solid :border-collapse :collapse}})
+                                #_(dom/li (dom/text (:student/id value) ", " (:student/name value) "," (:student/department value)))
+                                (dom/tr (dom/props {:style {:border-style :solid :border-collapse :collapse}})
 
-                                                                  (dom/td (dom/text (:student/id value)))
-                                                                  (dom/td (dom/text (:student/name value)))
-                                                                  (dom/td (dom/text (:student/department value)))))))))))
-                        (dom/div (dom/props
-                                   {:style {:grid-area             "w"
-                                            :display               :grid
-                                            :grid-gap              "0.5rem"
-                                            :grid-template-columns "auto auto auto 1fr"}})
-                                 (dom/text "Course Filter Side")
-                                 (let [!course-dept (atom "") , course-dept (e/watch !course-dept)]
-                                   (dom/span (dom/props {:grid-area "o"}) (dom/text "Department:"))
-                                   (ui4/input course-dept (e/fn [v] (reset! !course-dept v)))
-                                   (dom/ul (dom/props {:style            {:grid-area "y"}
-                                                       :background-color :white
-                                                       :list-style-type  :none
-                                                       :padding          0
-                                                       :border           "1px gray solid"
-                                                       :height           "100%"})
-                                           (dom/table
-                                             (dom/th (dom/text "Code"))
-                                             (dom/th (dom/text "Name"))
-                                             (dom/th (dom/text "Department"))
-                                             (dom/th (dom/text "Id"))
-                                             (e/for [entry (filter-course (:courses state) course-dept)]
-                                                    (let [id (key entry)
-                                                          value (val entry)]
+                                        (dom/td (dom/text (:student/id value)))
+                                        (dom/td (dom/text (:student/name value)))
+                                        (dom/td (dom/text (:student/department value))))))))))
+               (dom/div
+                 (dom/text "Course Filter Side")
+                 (let [!course-dept (atom "") , course-dept (e/watch !course-dept)]
+                   (dom/span  (dom/text "Department:"))
+                   (ui4/input course-dept (e/fn [v] (reset! !course-dept v)))
+                   (dom/ul
+                     (dom/table
+                       (dom/th (dom/text "Code"))
+                       (dom/th (dom/text "Name"))
+                       (dom/th (dom/text "Department"))
+                       (dom/th (dom/text "Id"))
+                       (e/for [entry (filter-course (:courses state) course-dept)]
+                              (let [id (key entry)
+                                    value (val entry)]
 
-                                                      #_(dom/li (dom/text (:surname value) ", " (:name value) "," (:department value)))
-                                                      (dom/tr (dom/props {:style {:border-style :solid :border-collapse :collapse}})
+                                #_(dom/li (dom/text (:surname value) ", " (:name value) "," (:department value)))
+                                (dom/tr (dom/props {:style {:border-style :solid :border-collapse :collapse}})
 
-                                                              (dom/td (dom/text (:code value)))
-                                                              (dom/td (dom/text (:name value)))
-                                                              (dom/td (dom/text (:department value)))
-                                                              (dom/td (dom/text id))))))))
+                                        (dom/td (dom/text (:code value)))
+                                        (dom/td (dom/text (:name value)))
+                                        (dom/td (dom/text (:department value)))
+                                        (dom/td (dom/text id))))))))
 
-                                 (let [stage (:stage-course state)]
+                 (let [stage (:stage-course state)]
 
-                                   (dom/span  (dom/text "Course Code:"))
-                                   (ui4/input (:code stage) (e/fn [v] (set-course-code! v)))
+                   (dom/span  (dom/text "Course Code:"))
+                   (ui4/input (:code stage) (e/fn [v] (set-course-code! v)))
 
-                                   (dom/span  (dom/text "Course Name:"))
-                                   (ui4/input (:name stage) (e/fn [v] (set-course-name! v)))
+                   (dom/span  (dom/text "Course Name:"))
+                   (ui4/input (:name stage) (e/fn [v] (set-course-name! v)))
 
-                                   (dom/span  (dom/text "Course Department"))
-                                   (ui4/input (:department stage) (e/fn [v] (set-course-department! v)))
+                   (dom/span  (dom/text "Course Department"))
+                   (ui4/input (:department stage) (e/fn [v] (set-course-department! v)))
 
 
-                                   (dom/div (dom/props
-                                              {:style {:grid-area             "j"
-                                                       :display               :grid
-                                                       :grid-gap              "0.5rem"
-                                                       :grid-template-columns "auto auto auto 1fr"}})
-                                            (dom/div (ui4/button (e/fn [] (set-course-id!)
-                                                                       (create-course!)
-                                                                       #_(apply (.-log js/console) (:names state))
-                                                                       (e/server (CreateCourse (:id (last (vals (get-in state [:courses])))) (:code (last (vals (get-in state [:courses])))) (:name (last (vals (get-in state [:courses])))) (:department (last (vals (get-in state [:courses])))) !conn))) (dom/text "Course Create"))))
+                   (dom/div
+                     (dom/div (ui4/button (e/fn [] (set-course-id!)
+                                                (create-course!)
+                                                #_(apply (.-log js/console) (:names state))
+                                                (e/server (CreateCourse (:id (last (vals (get-in state [:courses]))))
+                                                                        (:code (last (vals (get-in state [:courses]))))
+                                                                        (:name (last (vals (get-in state [:courses]))))
+                                                                        (:department (last (vals (get-in state [:courses])))) !conn)))
+                                          (dom/text "Course Create"))))))
+               (dom/div
+                  (dom/text  "Course Filter by department name from DB")
+                  (let [!filter-dept (atom ""), filter-dept (e/watch !filter-dept)]
+           (dom/span  (dom/text " Department:")
+                   (ui4/input filter-dept (e/fn [v] (reset! !filter-dept v)))
+                   (dom/text (e/server (query-course db (keyword "department" "fizik"))))
+
+
+                   (dom/ul
+                     (dom/table
+                       (dom/th (dom/text "Code"))
+                       (dom/th (dom/text "Name"))
+                       (dom/th (dom/text "Department"))
+                       (e/for [entry (e/server (query-course db (into [] (keyword "department" filter-dept))))]
+                              (let [value entry]
+                                #_(dom/li (dom/text (:student/id value) ", " (:student/name value) "," (:student/department value)))
+                                (dom/tr (dom/props {:style {:border-style :solid :border-collapse :collapse}})
+                                        (dom/td (dom/text (:course/code value)))
+                                        (dom/td (dom/text (:course/name value)))
+                                        (dom/td (dom/text (:course/department value))))))))))))))))
 
 
 
-                                   (dom/div
-                                            (dom/text (dom/props {:grid-area "o"}) "Course Filter by department name from DB")
-                                            (let [!filter-dept (atom ""), filter-dept (e/watch !filter-dept)]
-                                              (dom/span (dom/props {:grid-area "o"}) (dom/text "Department:"))
-                                              (ui4/input filter-dept (e/fn [v] (reset! !filter-dept v)))
-                                              (dom/text (e/server (query-course db (into [] (keyword "department" "fizik")))))
 
-
-                                              (dom/ul (dom/props {:style            {:grid-area "o"}
-                                                                  :background-color :white
-                                                                  :list-style-type  :none
-                                                                  :padding          0
-                                                                  :border           "1px gray solid"
-                                                                  :height           "100%"})
-                                                      (dom/table (dom/props {:style {:grid-area "o"}})
-                                                                 (dom/th (dom/text "Code"))
-                                                                 (dom/th (dom/text "Name"))
-                                                                 (dom/th (dom/text "Department"))
-                                                                 (e/for [entry (e/server (query-course db (into [] (keyword "department" filter-dept))))]
-                                                                        (let [value entry]
-                                                                          #_(dom/li (dom/text (:student/id value) ", " (:student/name value) "," (:student/department value)))
-                                                                          (dom/tr (dom/props {:style {:border-style :solid :border-collapse :collapse}})
-                                                                                  (dom/td (dom/text (:course/code value)))
-                                                                                  (dom/td (dom/text (:course/name value)))
-                                                                                  (dom/td (dom/text (:course/department value))))))))))))))))))
 
 
 

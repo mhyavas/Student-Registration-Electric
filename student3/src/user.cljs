@@ -1,9 +1,9 @@
 (ns ^:dev/always user ; Electric currently needs to rebuild everything when any file changes. Will fix
   (:require
     app.todo-list
-    app.test2
+    ;app.test2
     app.test2-1
-    app.test-filters
+    ;app.test-filters
     hyperfiddle.electric
     hyperfiddle.electric-dom2))
 

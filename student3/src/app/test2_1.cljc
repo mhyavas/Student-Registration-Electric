@@ -147,11 +147,21 @@
                    db dept))))
 
 #?(:clj (defn query-course [db dept]
+          #_(d/q
+            '[:find ?e ?v
+              :in $ ?dept
+              :where
+              [?e :course/department ?dept]
+              [?e :course/name ?v]]
+            db [dept])
+          #_(d/q '[:find [(pull ?e [:course/id :course/name :course/department])...]
+                 :in $ ?dept
+                 :where [?e :course/department ?dept]] db [:department/fizik])
           (-> (d/q '[:find [(pull ?e [:course/id :course/code :course/name :course/department]) ...]
-                     :in $ [?dept ...]
+                     :in $ ?dept
                      :where [?e :course/department ?dept]]
 
-                   db dept))))
+                   db [dept]))))
 
 (defn select! [id]
   (swap! !state (fn [state]
@@ -312,7 +322,7 @@
                   (let [!filter-dept (atom ""), filter-dept (e/watch !filter-dept)]
            (dom/span  (dom/text " Department:")
                    (ui4/input filter-dept (e/fn [v] (reset! !filter-dept v)))
-                   (dom/text (e/server (query-course db (keyword "department" "fizik"))))
+                   
 
 
                    (dom/ul
@@ -320,7 +330,7 @@
                        (dom/th (dom/text "Code"))
                        (dom/th (dom/text "Name"))
                        (dom/th (dom/text "Department"))
-                       (e/for [entry (e/server (query-course db (into [] (keyword "department" filter-dept))))]
+                       (e/for [entry (e/server (query-course db (keyword "department" filter-dept)))]
                               (let [value entry]
                                 #_(dom/li (dom/text (:student/id value) ", " (:student/name value) "," (:student/department value)))
                                 (dom/tr (dom/props {:style {:border-style :solid :border-collapse :collapse}})

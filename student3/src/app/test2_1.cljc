@@ -322,7 +322,7 @@
                   (let [!filter-dept (atom ""), filter-dept (e/watch !filter-dept)]
            (dom/span  (dom/text " Department:")
                    (ui4/input filter-dept (e/fn [v] (reset! !filter-dept v)))
-                   
+
 
 
                    (dom/ul

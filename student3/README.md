@@ -1,40 +1,70 @@
-# electric-starter-app
+# Student Registration App
 
+## Index
+[Entity Tipleri](#Entity-Tipleri)
+
+[Hatalar](#hatalar)
+
+
+## Entity Tipleri
+Projede iki farklı database yapısı bulunmaktadır. Bunlar atom olarak tutulan hashmap ve datascript memory db'dir.
+
+Student Registration App iki farklı veri kaydı tutuyor. Bunlar öğrencilerin listesi ve derslerin listesidir.
+Öğrenciler sadece tek bir departmana kayıtlı olabilirler ve öğrencilerin kayıtları db'de
+```clojure
+[:student/id :student/name :student/department]
 ```
-$ clj -A:dev -X user/main
-
-Starting Electric compiler and server...
-shadow-cljs - server version: 2.20.1 running at http://localhost:9630
-shadow-cljs - nREPL server started on port 9001
-[:app] Configuring build.
-[:app] Compiling ...
-[:app] Build completed. (224 files, 0 compiled, 0 warnings, 1.93s)
-
-👉 App server available at http://0.0.0.0:8080
+yukarıdaki şekilde "student" namespace'i altında tutuluyor.
+Derslerin kayıtları ise
+```clojure
+[:course/id :course/code :course/name :course/department]
 ```
+"course" namespace'i altında tutuluyor. Bir ders birden fazla departmanda verilebileceğinden derslerin departman kayıtları collection şeklinde tutuluyor.
+DB'den query ile departman filtrelemesi yaptığımız zaman datomic ile datascript arasındaki farklılıklardan dolayı hatalar oluştu. Bu hataları input ve hatalarıyla beraber  `/src/notebooks/e01.clj`
+dosyasında tutuyorum. Scripte [burdan](src/notebooks/e01.clj) ulaşabilirsin.
 
-# Deployment
+Bu projede fonksiyonların server tarafında mı yoksa client tarafında mı çalışacağını ayırt etmek başlangıçta zorladı. Sonrasında DB fonksiyonu ise server diğer tüm fonksiyonlar client tarafında çalışır dedim.
+Bu düşünce başlangıçta hayat kurtardı.
 
-ClojureScript optimized build, Dockerfile, Uberjar, Github actions CD to fly.io
+Bu projede hyperfiddle'ın CRUD scriptini temel alarak kodladım.
 
-```
-HYPERFIDDLE_ELECTRIC_APP_VERSION=`git describe --tags --long --always --dirty`
-clojure -X:build uberjar :jar-name "app.jar" :version '"'$HYPERFIDDLE_ELECTRIC_APP_VERSION'"'
-java -DHYPERFIDDLE_ELECTRIC_SERVER_VERSION=$HYPERFIDDLE_ELECTRIC_APP_VERSION -jar app.jar
-```
+[Hyperfiddle reposu](https://github.com/hyperfiddle/electric/blob/master/src-docs/user/tutorial_7guis_5_crud.cljc)
 
-```
-docker build --progress=plain --build-arg VERSION="$HYPERFIDDLE_ELECTRIC_APP_VERSION" -t electric-starter-app .
-docker run --rm -p 7070:8080 electric-starter-app
-```
+CRUD atom db kullanılarak oluşturulmuş. Bunun yanına datascript ile memory based db oluşturdum.
 
-```
-# flyctl launch ... ? create fly app, generate fly.toml, see dashboard
-# https://fly.io/apps/electric-starter-app
+Projenin başlangıcında datomic ile çalışmayı hedeflemiştim. Ama DB bağlantılarını robust şekilde kuramadım.
+Hyperfiddle'ın diğer repolarında datascript ile kurulan db modellerini CRUD'a ekledim.
+En basit datascript implemantasyonu [todos_simple](https://github.com/hyperfiddle/electric/blob/master/src-docs/user/demo_todos_simple.cljc) projesinde buldum.
 
-NO_COLOR=1 flyctl deploy --build-arg VERSION="$HYPERFIDDLE_ELECTRIC_APP_VERSION"
-# https://electric-starter-app.fly.dev/
-```
+Datascript'in temellerini [datascript-tutorial](https://github.com/kristianmandrup/datascript-tutorial) reposundan öğrendim.
 
-- `NO_COLOR=1` disables docker-cli fancy shell GUI, so that we see the full log (not paginated) in case of exception
-- `--build-only` tests the build on fly.io without deploying
+## Hatalar
+- Projedeki en temel hatalardan bir tanesi Stale Output hatasıdır. Configuration ya da RAM hatalarından kaynaklandığını buldum.
+Geçici çözüm olarak bilgisayarı yeniden başlatarak projeyi tekrardan çalıştırıyorum. ![Örnek hata görüntüsü](https://i.stack.imgur.com/NQvVn.png)
+
+- `/src/app` klasörünün altında birden fazla script var. Farklı hataları çözümlerken ana kodu parçalayarak daha minimize kodlar üreterek hatayı çözmeye çalıştım.
+
+  - [test_filters](src/app/test_filters.cljc) dosyasında atom db içinde öğrenci ve ders arama textfieldlarını test ettim.
+  - [course_test](src/app/course_test.cljc) dosyasında datascript için query yazma denemeleri yaptım. Halen collection binding hatası alıyorum.
+
+- Query hataları:
+  -
+  ```clojure
+    (-> (d/q '[:find [(pull ?e [:course/id :course/code :course/name :course/department]...) ]
+                     :in $ ?dept
+                     :where [?e :course/department ?dept]]
+
+                   db [dept]))
+    ```
+    ```
+      #error {
+    :cause Cannot parse pull expression, expect ['pull' src-var? variable (constant | variable | plain-symbol)]
+    :data {:error :parser/find, :fragment (pull ?e [:course/id :course/code :course/name :course/department] ...)}
+    :via
+    [{:type clojure.lang.ExceptionInfo
+    :message Cannot parse pull expression, expect ['pull' src-var? variable (constant | variable | plain-symbol)]
+    :data {:error :parser/find, :fragment (pull ?e [:course/id :course/code :course/name :course/department] ...)}
+    :at [datascript.parser$parse_pull_expr invokeStatic parser.cljc 316]}]
+
+    ```
+  - Datascript db oluştururken schemayı connection kurarken gönderebildiğimi öğrendim. Ama projede bunu yapmadım ve hata aldım. Hatanın detaylarını [bu](errors.md) dosyada görebilirsiniz.

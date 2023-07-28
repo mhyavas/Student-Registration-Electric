@@ -1,5 +1,8 @@
 (ns user) ; Must be ".clj" file, Clojure doesn't auto-load user.cljc
 
+(require '[nextjournal.clerk :as clerk])
+(clerk/serve! {:browse? true})
+(clerk/serve! {:watch-paths ["src/notebooks" "src"]})
 ; lazy load dev stuff - for faster REPL startup and cleaner dev classpath
 (def start-electric-server! (delay @(requiring-resolve 'electric-server-java8-jetty9/start-server!)))
 (def shadow-start! (delay @(requiring-resolve 'shadow.cljs.devtools.server/start!)))

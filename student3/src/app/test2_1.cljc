@@ -48,10 +48,10 @@
 
 
 (def !state (atom {:selected nil
-                   :stage    {:name       ""
-                              :surname    ""
-                              :department ""
-                              :id         0}
+                   :stage-student    {:name       ""
+                                      :surname    ""
+                                      :department ""
+                                      :id         0}
                    :stage-course {:name ""
                                   :code ""
                                   :department ""
@@ -80,15 +80,15 @@
                                             :department ""
                                             :id 0})))))
 (defn set-name! [name]
-  (swap! !state assoc-in [:stage :name] name))
+  (swap! !state assoc-in [:stage-student :name] name))
 
 (defn set-surname! [surname]
-  (swap! !state assoc-in [:stage :surname] surname))
+  (swap! !state assoc-in [:stage-student :surname] surname))
 (defn set-department! [department]
-  (swap! !state assoc-in [:stage :department] (keyword "department" department)))
+  (swap! !state assoc-in [:stage-student :department] (keyword "department" department)))
 
 (defn set-id! []
-  (swap! !state assoc-in [:stage :id] (next-id)))
+  (swap! !state assoc-in [:stage-student :id] (next-id)))
 
 
 #?(:clj (defn create-schema [schema1 db]
@@ -98,11 +98,11 @@
 
 
 (defn create! []
-  (swap! !state (fn [{:keys [stage] :as state}]
+  (swap! !state (fn [{:keys [stage-student] :as state}]
                   #_(set-id!)
                   (-> state
-                      (update :names assoc (:id stage) stage)
-                      (assoc :stage {:name "", :surname "", :department "", :id 0})))))
+                      (update :names assoc (:id stage-student) stage-student)
+                      (assoc :stage-student {:name "", :surname "", :department "", :id 0})))))
 
 
 
@@ -157,21 +157,21 @@
           #_(d/q '[:find [(pull ?e [:course/id :course/name :course/department])...]
                  :in $ ?dept
                  :where [?e :course/department ?dept]] db [:department/fizik])
-          (-> (d/q '[:find [(pull ?e [:course/id :course/code :course/name :course/department]) ...]
-                     :in $ ?dept
+          (-> (d/q '[:find [(pull ?e [:course/id :course/code :course/name :course/department]...) ]
+                     :in $ [?dept]
                      :where [?e :course/department ?dept]]
 
-                   db [dept]))))
+                   db dept))))
 
 (defn select! [id]
   (swap! !state (fn [state]
                   (assoc state :selected id
-                               :stage (get-in state [:names id])))))
+                               :stage-student (get-in state [:names id])))))
 
 (defn course-select! [id]
   (swap! !state (fn [state]
                   (assoc state :selected id
-                               :stage (get-in state [:names id])))))
+                               :stage-course (get-in state [:names id])))))
 
 
 (e/defn CRUD []
@@ -180,6 +180,7 @@
          (binding [db (e/watch !conn)]
            (e/server (create-schema schema-dept  !conn))
            (e/client
+             (dom/h2 (dom/text "Student Search from Atom"))
              (let [state (e/watch !state)
                    selected (:selected state)]
                (dom/div (dom/props {:style {:display             :grid
@@ -191,6 +192,7 @@
                                                          'd d i k'\n
                                                          'j j j j'\n
                                                          'w w w w'\n"}})
+
                         (dom/span (dom/props {:style {:grid-area "a"}})
                                   (dom/text "Filter prefix:"))
                         (let [!needle (atom ""), needle (e/watch !needle)]
@@ -202,6 +204,7 @@
                                               :padding          0
                                               :border           "1px gray solid"
                                               :height           "100%"})
+                                  (dom/h2 (dom/text "Student List"))
                                   (dom/table
                                     (dom/th (dom/text "Surname"))
                                     (dom/th (dom/text "Name"))
@@ -223,7 +226,7 @@
 
 
 
-                        (let [stage (:stage state)]
+                        (let [stage (:stage-student state)]
 
                           (dom/span (dom/props {:style {:grid-area "e"}}) (dom/text "Name:"))
                           (ui4/input (:name stage) (e/fn [v] (set-name! v))
@@ -254,6 +257,7 @@
                           )
                         )
                (dom/div
+                 (dom/h2 (dom/text "Student Search from DB"))
                  (let [!filter-dept (atom ""), filter-dept (e/watch !filter-dept)]
                    (dom/span  (dom/text "Student Search by Department:"))
                    (ui4/input filter-dept (e/fn [v] (reset! !filter-dept v)))
@@ -273,11 +277,14 @@
                                         (dom/td (dom/text (:student/id value)))
                                         (dom/td (dom/text (:student/name value)))
                                         (dom/td (dom/text (:student/department value))))))))))
+
                (dom/div
+                 (dom/h2 (dom/text "Course Search"))
                  (dom/text "Course Filter Side")
                  (let [!course-dept (atom "") , course-dept (e/watch !course-dept)]
                    (dom/span  (dom/text "Department:"))
                    (ui4/input course-dept (e/fn [v] (reset! !course-dept v)))
+                   (dom/h2 (dom/text "Course List"))
                    (dom/ul
                      (dom/table
                        (dom/th (dom/text "Code"))
@@ -295,7 +302,7 @@
                                         (dom/td (dom/text (:name value)))
                                         (dom/td (dom/text (:department value)))
                                         (dom/td (dom/text id))))))))
-
+                 (dom/h2 (dom/text "Course Create"))
                  (let [stage (:stage-course state)]
 
                    (dom/span  (dom/text "Course Code:"))

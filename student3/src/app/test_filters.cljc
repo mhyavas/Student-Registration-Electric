@@ -157,7 +157,7 @@
               :where
               [?e :course/department ?dept]
               [?e :course/name ?v]]
-            db [dept])
+            db dept)
           #_(d/q '[:find [(pull ?e [:course/id :course/name :course/department])...]
                    :in $ ?dept
                    :where [?e :course/department ?dept]] db [:department/fizik])

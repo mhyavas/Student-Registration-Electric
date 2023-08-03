@@ -5,9 +5,10 @@
             [hyperfiddle.electric-dom2 :as dom]
             [hyperfiddle.history :as history]
             #_[app.main-index :as demos]
-            app.main-index
-            app.test2-1
-            reg-sim2.main-page))
+            app.demo-index
+            app.instructor-search
+            app.student-search
+            app.main-index))
 
 
 
@@ -18,9 +19,9 @@
 (e/defn Pages [page]
         (e/server
           (case page
-            `app.main-index/Demos app.main-index/Demos
-            `app.test2-1/CRUD app.test2-1/CRUD
-            `reg-sim2.main-page/MainPage reg-sim2.main-page/MainPage
+            `app.demo-index/CreateData app.demo-index/CreateData
+            `app.student-search/StudentSearch app.student-search/StudentSearch
+            `app.instructor-search/InstructorSearch app.instructor-search/InstructorSearch
             NotFoundPage)))
 
 (e/defn Main []

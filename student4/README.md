@@ -1,101 +1,63 @@
-# electric-starter-app
+# Student Registration App v2
 
+Birinci versiyondan en baş farkı datascript yerine datomic kullanıldı.
+
+Datomic bağlantısını yaparken [electric-datomic-browser](https://github.com/hyperfiddle/electric-datomic-browser/tree/main) reposunu örnek aldım.
+
+Bir önceki versiyondan datomic bağlantısını kuramamın sebebi client ve server taraflarında yanlış fonksiyonları çalıştırmamdan kaynaklandığını gördüm.
+
+Bu versiyonda da benzer bir hata ile karşılaştım.
 ```
-$ clj -A:dev -X user/main
-
-Starting Electric compiler and server...
-shadow-cljs - server version: 2.20.1 running at http://localhost:9630
-shadow-cljs - nREPL server started on port 9001
-[:app] Configuring build.
-[:app] Compiling ...
-[:app] Build completed. (224 files, 0 compiled, 0 warnings, 1.93s)
-
-👉 App server available at http://0.0.0.0:8080
+[:dev] Build failure:
+------ ERROR -------------------------------------------------------------------
+ File: C:\Users\amibroker\Desktop\clj-study\study-electric\student4\src\user.cljs:9:3
+--------------------------------------------------------------------------------
+   6 |     hyperfiddle.electric-dom2))
+   7 | 
+   8 | (def electric-main
+   9 |   (hyperfiddle.electric/boot ; Electric macroexpansion - Clojure to signals compiler
+---------^----------------------------------------------------------------------
+Encountered error when macroexpanding hyperfiddle.electric/boot.
+Unable to resolve symbol: hyperfiddle.electric-dom2/new-node
+{:file "app/demo_index.cljc", :in [hyperfiddle.electric-dom2/new-node]}
+ExceptionInfo: Unable to resolve symbol: hyperfiddle.electric-dom2/new-node
 ```
+Bu hatanın sebebi ana fonksiyonun içerisinde client ve server sıralamasının yanlış olmasındaydı.
 
-# Error reporting
-
-Reproduce this now and confirm error handling works so you trust it:
-
-![screenshot of electric error reporting](readme-electric-error-reporting-proof.png)
-
-Electric is a reactive (async) language. Like React.js, we reconstruct synthetic async stack traces. If you aren't seeing them, something is wrong!
-
-# Logging
-
-The Electric server logs. The default logger config is slightly verbose by default to force you to see it working:
-
+Hata veren:
+```clojure
+(e/defn Index []
+        (e/client
+          (e/server
+          (binding [conn @(requiring-resolve 'user/datomic-conn)]
+            (binding [db (d/db conn)]
+              
+                (dom/div
+                  (dom/h2 (dom/text "Creating Student"))
+                  (let [state (e/watch !state)]
+                  ...
+                  ...
 ```
-DEBUG hyperfiddle.electric.impl.env: reloading app.todo-list
-DEBUG hyperfiddle.electric-jetty-adapter: Client disconnected for an unknown reason (browser default close code) {:status 1005, :reason nil}
-DEBUG hyperfiddle.electric-jetty-adapter: Websocket handler completed gracefully.
-DEBUG hyperfiddle.electric-jetty-adapter: WS connect ...
-DEBUG hyperfiddle.electric.impl.env: reloading app.todo-list
-DEBUG hyperfiddle.electric-jetty-adapter: Client disconnected for an unknown reason (browser default close code) {:status 1005, :reason nil}
-```
-
-**Silence the Electric debug logs by live editing logback.xml** and setting `name="hyperfiddle"` to `level="INFO"`, it will hot code reload so no restart is needed. Please **do NOT disable logs entirely**; the Electric server logs one important warning at the `INFO` level we call **unserializable reference transfer**, here is an example:
-
-```
-(e/defn TodoCreate []
-  (e/client
-    (InputSubmit. (e/fn [v]
-                    (e/server
-                      (d/transact! !conn [{:task/description v
-                                           :task/status :active}])
-                      nil))))) ;     <-- here
-```
-
-Note the intentional `nil` in the final line. If you remove the nil — try it right now — Electric will attempt to serialize whatever `d/transact!` returns — a reference — and stream it to the client. Since that reference cannot be serialized, Electric will send `nil` instead, and log at the `INFO` level:
-
-```
-INFO  hyperfiddle.electric.impl.io: Unserializable reference transfer: datascript.lru$cache$reify__35945 datascript.lru$cache$reify__35945@48ea0f24
-INFO  hyperfiddle.electric.impl.io: Unserializable reference transfer: datascript.db.Datom #datascript/Datom [1 :task/description "asdf" 536870913 true]
-...
+Hatasız versiyon:
+```clojure
+(e/defn Index []
+        (e/server
+          (binding [conn @(requiring-resolve 'user/datomic-conn)]
+            (binding [db (d/db conn)]
+              (e/client
+                (dom/div
+                  (dom/h2 (dom/text "Creating Student"))
+                  (let [state (e/watch !state)]
+                  ...
+                  ...
 ```
 
-We decided not to throw an exception here because it is almost always unintentional when this happens. **Do not disable this warning, it will save you one day!** If you want to target this exact message, use this:
-`<logger name="hyperfiddle.electric.impl.io" level="DEBUG" additivity="false"><appender-ref ref="STDOUT" /></logger>`
 
-[Note: Perhaps we should revisit this decision in the future now that our exception handling is more mature.]
-
-# Deployment
-
-ClojureScript optimized build, Dockerfile, Uberjar, Github actions CD to fly.io
-
+- `app/demo_index.cljc` içindeki `CreateData` fonksiyonu ya da `user_main.cljc` dosyasındaki `Pages` fonksiyonu 'Unable to resolve' hatası veriyordu.
 ```
-HYPERFIDDLE_ELECTRIC_APP_VERSION=`git describe --tags --long --always --dirty`
-clojure -X:build uberjar :jar-name "app.jar" :version '"'$HYPERFIDDLE_ELECTRIC_APP_VERSION'"'
-java -DHYPERFIDDLE_ELECTRIC_SERVER_VERSION=$HYPERFIDDLE_ELECTRIC_APP_VERSION -jar app.jar
+Encountered error when macroexpanding hyperfiddle.electric/boot.
+Unable to resolve symbol: Pages
+{:file "user_main.cljc", :in [(Pages. page)]}
+ExceptionInfo: Unable to resolve symbol: Pages
 ```
 
-```
-docker build --progress=plain --build-arg VERSION="$HYPERFIDDLE_ELECTRIC_APP_VERSION" -t electric-starter-app .
-docker run --rm -p 7070:8080 electric-starter-app
-```
-
-```
-fly launch # generate fly.toml
-fly status
-fly regions list
-fly platform vm-sizes
-fly scale vm shared-cpu-4x
-NO_COLOR=1 fly deploy --build-arg VERSION="$HYPERFIDDLE_ELECTRIC_APP_VERSION"
-# `NO_COLOR=1` disables docker-cli pagination to see full log in case of exception
-# `--build-only` tests the build on fly.io without deploying
-
-https://fly.io/docs/about/pricing/
-https://fly.io/docs/apps/scale-machine/
-https://community.fly.io/t/how-to-specify-regions-to-run-in/3048
-
-# DNS
-fly ips list
-fly ips allocate-v4
-# configure DNS A and AAAA records
-fly certs create "*.electricfiddle.net" # quote * to avoid shell expansion
-fly certs list
-fly certs check "*.electricfiddle.net"
-fly certs show "*.electricfiddle.net"
-
-https://electric-starter-app.fly.dev/
-```

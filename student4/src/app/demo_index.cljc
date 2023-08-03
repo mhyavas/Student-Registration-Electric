@@ -33,11 +33,51 @@
                                   :instructor ""
                                   :class ""
                                   :id 0}
-                   :names    (sorted-map 0 {:name "Emil", :surname "Hans", :department :department/matematik, :course ["MAT101"] :id 0})
-                   :courses  (sorted-map 0 {:name "Calculus 1" :code "MAT101" :department [:department/matematik :department/fizik] :id 0})}))
+                   :names    (sorted-map 0 {:name "Emil", :surname "Hans", :department [:department/matematik], :course ["MAT101"] :id 0})
+                   :courses  (sorted-map 0 {:name "Calculus 1" :code "MAT101" :department [:department/matematik :department/fizik] :id 0})
+                   :instructor (sorted-map 0 {:name "Ali Deniz" :id 1 :department [:department/fizik] :course ["MAT101"]})}))
 
-#?(:clj (defn create-schema [schema1 db]
-          (d/transact! db schema1)))
+
+
+#?(:clj (defn student-next-id [db]
+          (if (empty? (d/q '[:find (max ?id)
+                             :where [_ :student/id ?id]] db))
+            101
+            (inc (ffirst (d/q '[:find (max ?id)
+                                :where [_ :student/id ?id]] db))))))
+#?(:clj (defn course-next-id [db]
+          (if (empty (d/q '[:find (max ?id)
+                            :where [_ :course/id ?id]] db))
+            201
+            (inc (ffirst (d/q '[:find (max ?id)
+                                :where [_ :course/id ?id]] db))))))
+
+#?(:clj (defn instructor-next-id [db]
+          (if (empty (d/q '[:find (max ?id)
+                            :where [_ :instructor/id ?id]] db))
+            301
+            (inc (ffirst (d/q '[:find (max ?id)
+                                :where [_ :instructor/id ?id]] db))))))
+
+#?(:clj (defn department-next-id [db]
+          (if (empty (d/q '[:find (max ?id)
+                            :where [_ :department/id ?id]] db))
+            401
+            (inc (ffirst (d/q '[:find (max ?id)
+                                :where [_ :department/id ?id]] db))))))
+
+#?(:clj (defn department-id-finder [dept-string db]
+          ;Cikti olarak:
+          ;=> [[:department/id 401] [:department/id 402]]
+          (into [] (map (fn [dept] (vector (keyword "department" "id") (ffirst (d/q '[:find ?id
+                                                                                      :in $ ?dept
+                                                                                      :where [?e :department/name ?dept]
+                                                                                      [?e :department/id ?id]] db dept)))) (clojure.string/split dept-string #",")))))
+
+
+(defn create-student! [db]
+  (swap! !state (fn [{:keys [stage-student] :as state}]
+                  (e/server (CreateStudent (:id state) (:name state) (:department state) (:course state) db)))))
 
 #?(:clj (defn CreateStudent [id name department course db]
           (d/transact! db [{:student/id         id
@@ -63,7 +103,7 @@
   (swap! !state assoc-in [:stage-student :department] (keyword "department" department)))
 
 
-(e/defn Index []
+(e/defn CreateData []
         (e/server
           (binding [conn @(requiring-resolve 'user/datomic-conn)]
             (binding [db (d/db conn)]
@@ -73,16 +113,12 @@
                   (let [state (e/watch !state)]
                     (let [stage (:stage-student state)]
                       (dom/text stage)
-                      (dom/span (dom/props {:style {:grid-area "e"}}) (dom/text "Name:"))
-                      (ui4/input (:name stage) (e/fn [v] (set-name! v))
-                                 (dom/props {:style {:grid-area "f"}}))
-                      (dom/span (dom/props {:style {:grid-area "g"}}) (dom/text "Surname:"))
-                      (ui4/input (:surname stage) (e/fn [v] (set-surname! v))
-                                 (dom/props {:style {:grid-area "h"}}))
-                      (dom/span (dom/props {:style {:grid-area "i"}}) (dom/text "department"))
-                      (ui4/input (:department stage) (e/fn [v] (set-department! v))
-
-                                 (dom/props {:style {:grid-area "k"}}))
+                      (dom/span  (dom/text "Name:"))
+                      (ui4/input (:name stage) (e/fn [v] (set-name! v)))
+                      (dom/span  (dom/text "Surname:"))
+                      (ui4/input (:surname stage) (e/fn [v] (set-surname! v)))
+                      (dom/span  (dom/text "department"))
+                      (ui4/input (:department stage) (e/fn [v] (set-department! v)))
                       (dom/div (dom/props
                                  {:style {:grid-area             "j"
                                           :display               :grid

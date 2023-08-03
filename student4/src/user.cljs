@@ -2,13 +2,17 @@
   (:require
     app.todo-list
     app.demo-index
+    app.main-index
+    ;app.student-search
+    ;app.instructor-search
+    user-main
     hyperfiddle.electric
     hyperfiddle.electric-dom2))
 
 (def electric-main
   (hyperfiddle.electric/boot ; Electric macroexpansion - Clojure to signals compiler
     (binding [hyperfiddle.electric-dom2/node js/document.body]
-      (app.demo-index/Index.))))
+      (user-main/Main.))))
 
 (defonce reactor nil)
 

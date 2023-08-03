@@ -1,4 +1,4 @@
-(ns reg_sim2.main_page
+(ns reg-sim2.main-page
   (:require contrib.str
             [clojure.string :as str]
             #?(:clj [datascript.core :as d])                ; database on server
@@ -86,6 +86,13 @@
                             :course/instructor instructor
                             :course/class class}])))
 
+(defn set-name! [name]
+  (swap! !state assoc-in [:stage-student :name] name))
+
+(defn set-surname! [surname]
+  (swap! !state assoc-in [:stage-student :surname] surname))
+(defn set-department! [department]
+  (swap! !state assoc-in [:stage-student :department] (keyword "department" department)))
 
 (e/defn MainPage []
         (e/server
@@ -96,7 +103,30 @@
             (e/client
               (dom/div
                 (dom/h2 (dom/text "Creating Student"))
-                ())))))
+                (let [state (e/watch !state)]
+                  (let [stage (:stage-student state)]
+                    (dom/text stage)
+                    (dom/span  (dom/text "Name:"))
+                    (ui4/input (:name stage) (e/fn [v] (set-name! v)))
+                    (dom/span  (dom/text "Surname:"))
+                    (ui4/input (:surname stage) (e/fn [v] (set-surname! v)))
+                    (dom/span  (dom/text "department"))
+                    (ui4/input (:department stage) (e/fn [v] (set-department! v)))
+                    (dom/div (dom/props
+                               {:style {:grid-area             "j"
+                                        :display               :grid
+                                        :grid-gap              "0.5rem"
+                                        :grid-template-columns "auto auto auto 1fr"}})
+                             (dom/div (ui4/button (e/fn []
+                                                        (apply (.-log js/console) (:names state)))
+
+                                                  (dom/text "Create")))))))))))
+
+
+
+
+
+
 
 
 

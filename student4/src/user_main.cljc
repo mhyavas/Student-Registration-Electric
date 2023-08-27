@@ -19,9 +19,7 @@
 (e/defn Pages [page]
         (e/server
           (case page
-            `app.demo-index/CreateData app.demo-index/CreateData
-            `app.student-search/StudentSearch app.student-search/StudentSearch
-            `app.instructor-search/InstructorSearch app.instructor-search/InstructorSearch
+            `app.main-index/Demos `app.main-index/Demos
             NotFoundPage)))
 
 (e/defn Main []

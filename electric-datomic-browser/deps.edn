@@ -9,7 +9,7 @@
         org.clojure/clojurescript {:mvn/version "1.11.60"}
         org.clojure/tools.logging {:mvn/version "1.2.4"}
         ring-basic-authentication/ring-basic-authentication {:mvn/version "1.1.1"}}
- :mvn/repos {"my.datomic.com" {:url "https://my.datomic.com/repo"}
+ :mvn/repos {;"my.datomic.com" {:url "https://my.datomic.com/repo"}
              "cognitect-dev-tools"
              {:url "https://dev-tools.cognitect.com/maven/releases/"}}
  :aliases

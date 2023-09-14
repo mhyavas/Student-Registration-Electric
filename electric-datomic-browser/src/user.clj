@@ -4,7 +4,8 @@
             [hyperfiddle.rcf :refer [tests]]
             [missionary.core :as m]))
 
-
+(def datomic-client)
+(def datomic-conn)
 ; lazy load dev stuff - for faster REPL startup and cleaner dev classpath
 (def start-electric-server! (delay @(requiring-resolve 'electric-server-java11-jetty10/start-server!)))
 (def shadow-start! (delay @(requiring-resolve 'shadow.cljs.devtools.server/start!)))
@@ -12,35 +13,35 @@
 
 (def electric-server-config
   {:host "0.0.0.0", :port 8080, :resources-path "public"})
-(def datomic-client (datomic.client.api/client {:server-type :dev-local :storage-dir :mem :system "ci"}))
-(datomic.client.api/create-database datomic-client "datomic:mem://test2")
+#_(def datomic-client (datomic.client.api/client {:server-type :dev-local :storage-dir "C:\\Users\\amibroker\\Desktop\\clj-study\\study-electric\\datodb" :system "ci"}))
+#_(datomic.client.api/create-database datomic-client "datomic:mem://test2")
 
 
-(def datomic-conn (datomic.client.api/connect datomic-client "datomic:mem://test2"))
+#_(def datomic-conn (datomic.client.api/connect datomic-client {:db-name "studentReg"}))
 
-(datomic.client.api/transact  datomic-conn
+#_(datomic.client.api/transact  datomic-conn
                      {:tx-data [{:db/ident :department/matematik}
                      {:db/ident :department/fizik}
                      {:db/ident :department/sosyoloji}]})
-(datomic.client.api/transact datomic-conn
+#_(datomic.client.api/transact datomic-conn
                              {:tx-data [{:db/ident       :student/id
-                                :db/valueType   :db.type/long
-                                :db/unique      :db.unique/identity
-                                :db/cardinality :db.cardinality/one}
-                               {:db/ident       :student/name
-                                :db/valueType   :db.type/string
-                                :db/unique      :db.unique/identity
-                                :db/cardinality :db.cardinality/one}
-                               {:db/ident       :student/department
-                                :db/valueType   :db.type/ref
-                                :db/cardinality :db.cardinality/one}]})
-(datomic.client.api/transact datomic-conn
+                                         :db/valueType   :db.type/long
+                                         :db/unique      :db.unique/identity
+                                         :db/cardinality :db.cardinality/one}
+                                        {:db/ident       :student/name
+                                         :db/valueType   :db.type/string
+                                         :db/unique      :db.unique/identity
+                                         :db/cardinality :db.cardinality/one}
+                                        {:db/ident       :student/department
+                                         :db/valueType   :db.type/ref
+                                         :db/cardinality :db.cardinality/one}]})
+#_(datomic.client.api/transact datomic-conn
                              {:tx-data [{:student/id         1
-                                :student/name       "Can Ali"
-                                :student/department :department/matematik}
-                               {:student/id         2
-                                :student/name       "Ali Deniz"
-                                :student/department :department/fizik}]})
+                                         :student/name       "Can Ali"
+                                         :student/department :department/matematik}
+                                        {:student/id         2
+                                         :student/name       "Ali Deniz"
+                                         :student/department :department/fizik}]})
 
 (defn main [& args]
   (println "Starting Electric compiler and server...")
@@ -50,8 +51,8 @@
   (comment (.stop server))
 
   ; inject datomic root bindings
-  (alter-var-root #'datomic-client (constantly (datomic.client.api/client {:server-type :dev-local :storage-dir :mem :system "ci"})))
-  (alter-var-root #'datomic-conn (constantly (datomic.client.api/connect datomic-client "datomic:mem://test2")))
+  (alter-var-root #'datomic-client (constantly (datomic.client.api/client {:server-type :dev-local :storage-dir "C:\\Users\\amibroker\\Desktop\\clj-study\\study-electric\\datodb" :system "ci"})))
+  (alter-var-root #'datomic-conn (constantly (datomic.client.api/connect datomic-client {:db-name "studentReg"} )))
 
   ; inject test database, for repl only
   (require '[datomic.client.api.async :as d])

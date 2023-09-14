@@ -3,8 +3,12 @@
   #?(:cljs (:import [goog.math Long])) ; only this require syntax passes shadow in this file, why?
   (:require clojure.edn
             contrib.ednish
+            app.create-data
+            app.create-course
+            app.admin
             [contrib.str :refer [any-matches?]]
             [contrib.data :refer [unqualify treelister]]
+            [hyperfiddle.electric-ui4 :as ui4]
             #?(:clj [contrib.datomic-contrib :as dx])
             #?(:cljs contrib.datomic-cloud-contrib)
             [contrib.datomic-m #?(:clj :as :cljs :as-alias) d]
@@ -12,14 +16,121 @@
             [hyperfiddle.electric :as e]
             [hyperfiddle.electric-dom2 :as dom]
             [hyperfiddle.history :as history]
-            [missionary.core :as m]))
+            [missionary.core :as m]
+            #?(:clj [datomic.client.api :as dt])))
 
 (e/def conn)
 (e/def db)
 (e/def schema)
 
+(def !state-student (atom {:keyword ""}))
+
+#?(:clj (defn query-name [db dept]
+          (dt/q '[:find (pull ?e [*])
+                  :in $ ?dept
+                  :where [?e :student/name ?dept]]
+
+                db dept)))
+#?(:clj (defn query-dept [db dept]
+          (dt/q '[:find (pull ?e [*])
+                  :in $ ?id
+                  :where [?e :student/department ?id]] db dept)))
+
+(defn set-search! [name]
+  (swap! !state-student assoc-in [:keyword] name))
+(e/defn CourseSearch []
+        (e/server
+          (binding [conn @(requiring-resolve 'user/datomic-conn)]
+            (binding [db (dt/db conn)]
+              (e/client
+                (dom/div
+                  (let [!filter-course (atom ""), filter-course (e/watch !filter-course)]
+                     (dom/span  (dom/text "Course Search by Name:"))
+                     (ui4/input filter-course (e/fn [v] (reset! !filter-course v)))
+                     (dom/table
+                       (dom/th (dom/text "Name"))
+                       (dom/th (dom/text "Code"))
+                       (dom/th (dom/text "Department"))
+                       (dom/th (dom/text "Class"))
+                       (dom/th (dom/text "Instructor"))
+                       (e/for [value (e/server (dt/q '[:find (pull ?e [*])
+                                                       :in $ ?name
+                                                       :where [?e :course/name ?name]] db filter-course))]
+                              (dom/tr
+                                (dom/td (dom/text (:course/name (first value))))
+                                (dom/td (dom/text (:course/code (first value))))
+                                (dom/td (dom/text (e/server (map (fn [m] (ffirst (dt/q '[:find ?name
+                                                                                         :in $ ?dept-id
+                                                                                         :where [?dept-id :department/name ?name]] db (:db/id m)))) (:course/department (first value))))))
+                                (dom/td (dom/text (:course/class (first value))))
+                                (dom/td (dom/text (e/server (dt/q '[:find ?name
+                                                                    :in $ ?instructor-id
+                                                                    :where [?insturctor-id :instructor/name ?name]] db (:db/id (first (:course/instructor (first value))))))))))))))))))
+
+(e/defn StudentSearch []
+        (e/server
+          (binding [conn @(requiring-resolve 'user/datomic-conn)]
+            (binding [db (dt/db conn)]
+              (e/client
+                (dom/div
+                  (let [state (e/watch !state-student)]
+                    #_(dom/div
+                        (let [stage (:keyword state)]
+                          (dom/h1 (dom/text "Student Search"))
+                          (dom/span (dom/props {:style {:grid-area "i"}}) (dom/text "Student Name"))
+                          (ui4/input stage (e/fn [v] (set-search! v)))))
+                    (dom/div
+                      (let [!filter-dept (atom ""), filter-dept (e/watch !filter-dept)]
+                        (dom/span (dom/text "Student Search by Name:"))
+                        (ui4/input filter-dept (e/fn [v] (reset! !filter-dept v)))
 
 
+                        (dom/ul
+                          (dom/table
+                            (dom/th (dom/text "Id"))
+                            (dom/th (dom/text "Name"))
+                            (dom/th (dom/text "Department"))
+                            (e/for [entry (e/server (query-name db filter-dept))]
+                                   (let [value entry]
+
+                                     #_(dom/li (dom/text (:student/id value) ", " (:student/name value) "," (:student/department value)))
+                                     (dom/tr (dom/props {:style {:border-style :solid :border-collapse :collapse}})
+
+                                             (dom/td (dom/text (:student/id (first value))))
+                                             (dom/td (dom/text (:student/name (first value))))
+                                             (dom/td (dom/text (ffirst (e/server (dt/q '[:find ?name
+                                                                                         :in $ ?dept-id
+                                                                                         :where [?dept-id :department/name ?name]] db (:db/id (:student/department (first value)))))))))))))))
+                    (dom/div
+                      (let [!filter-dept (atom ""), filter-dept (e/watch !filter-dept)]
+                        (dom/span (dom/text "Student Search by Department:"))
+                        (ui4/input filter-dept (e/fn [v] (reset! !filter-dept v)))
+
+                        #_(dom/text (e/server (dt/q '[:find (pull ?e [*])
+                                                      :in $ ?id
+                                                      :where [?e :student/department ?id]] db (ffirst (dt/q '[:find ?dept-id
+                                                                                                              :in $ ?name
+                                                                                                              :where [?dept-id :department/name ?name]] db "Fizik")))))
+
+
+                        (dom/ul
+                          (dom/table
+                            (dom/th (dom/text "Id"))
+                            (dom/th (dom/text "Name"))
+                            (dom/th (dom/text "Department"))
+                            (e/for [entry (e/server (query-dept db (ffirst (dt/q '[:find ?dept-id
+                                                                                   :in $ ?name
+                                                                                   :where [?dept-id :department/name ?name]] db (clojure.string/capitalize filter-dept)))))]
+                                   (let [value entry]
+
+                                     #_(dom/li (dom/text (:student/id value) ", " (:student/name value) "," (:student/department value)))
+                                     (dom/tr (dom/props {:style {:border-style :solid :border-collapse :collapse}})
+
+                                             (dom/td (dom/text (:student/id (first value))))
+                                             (dom/td (dom/text (:student/name (first value))))
+                                             (dom/td (dom/text (ffirst (e/server (dt/q '[:find ?name
+                                                                                         :in $ ?dept-id
+                                                                                         :where [?dept-id :department/name ?name]] db (:db/id (:student/department (first value))))))))))))))))))))))
 (e/defn Attributes []
   (e/client (dom/h1 (dom/text "Attributes")))
   (let [cols [:db/ident :db/valueType :db/cardinality :db/unique :db/isComponent
@@ -144,54 +255,123 @@
          :v (pr-str v) ; when a is ref, render link
          (str tx)))}))
 
-(e/defn DbStats []
-  (e/client (dom/h1 (dom/text "Db stats")))
-  (Explorer.
-    (treelister
-      (new (e/task->cp (d/db-stats db)))
-      (fn [[k v]] (condp = k :attrs (into (sorted-map) v) nil))
-      any-matches?)
-    {::gridsheet/page-size 20
-     ::gridsheet/row-height 24
-     ::gridsheet/columns [::k ::v]
-     ::gridsheet/grid-template-columns "20em auto"
-     ::gridsheet/Format
-     (e/fn [[k v :as row] col]
-       (e/client
-         (case col
-           ::k (dom/text (pr-str k))
-           ::v (cond
-                 (= k :attrs) nil ; print children instead
-                 () (dom/text (pr-str v))))))})) ; {:count 123}
+(e/defn StudentList []
+        (e/server
+          (binding [conn @(requiring-resolve 'user/datomic-conn)]
+            (binding [db (dt/db conn)]
+              (e/client
+                (dom/text "Student List")
 
-(comment
-  {:datoms 800958,
-   :attrs
-   {:release/script {:count 11435},
-    :label/type {:count 870}
-    ... ...}})
+                (dom/div
+                  (dom/table
+                    (dom/th (dom/text "Name"))
+                    (dom/th (dom/text "Department"))
+                    (e/for [value (e/server (dt/q '[:find (pull ?e [*])
+                                                    :where [?e :student/id _]] db))]
+                           (dom/tr
+                             #_(history/link [::attribute v] (dom/text v))
+                             (dom/td (history/link [::student (:student/name (first value))] (dom/text (:student/name (first value)))))
+                             (dom/td (dom/text (ffirst (e/server (dt/q '[:find ?name
+                                                                         :in $ ?dept-id
+                                                                         :where [?dept-id :department/name ?name]] db (:db/id (:student/department (first value)))))))))))))))))
+(e/defn StudentInfo [name]
+        (e/server
+          (binding [conn @(requiring-resolve 'user/datomic-conn)]
+            (binding [db (dt/db conn)]
+              (e/client
+                (dom/h2 (dom/text "Student Info - " name))
+                (dom/div
+                  (dom/table
+                    (dom/th (dom/text "Name"))
+                    (dom/th (dom/text "Department"))
+                    (dom/th (dom/text "Courses"))
+                    (let [value (e/server (ffirst (dt/q '[:find (pull ?e [*])
+                                                          :in $ ?student-name
+                                                          :where [?e :student/name ?student-name]] db name)))]
+                      (dom/tr
+                        (dom/td (dom/text name))
+                        (dom/td (dom/text (ffirst (e/server (dt/q '[:find ?name
+                                                                    :in $ ?dept-id
+                                                                    :where [?dept-id :department/name ?name]] db (:db/id (:student/department value)))))))
+                        (dom/td (dom/text (e/server (map (fn [m] (flatten (dt/q '[:find ?name
+                                                                                  :in $ ?course-id
+                                                                                  :where [?course-id :course/name ?name]] db (:db/id m)))) (:student/course value))))))))))))))
+
+(e/defn CourseList []
+        (e/client
+          (dom/text "Course List")))
+
+(e/defn InstructorList []
+        (e/client
+          (dom/text "Insturctor List")))
+
+(e/defn Test []
+        (e/client (dom/h1 (dom/text "TEST"))))
+
+
+
 
 (e/defn Page [[page x]]
-  (dom/h1 (dom/text "Datomic browser"))
+        (e/server
+          (binding [conn @(requiring-resolve 'user/datomic-conn)]
+            (binding [db (dt/db conn)]
+              (e/client
+                (dom/h1 (dom/text "Student Registration App"))
+                (dom/div
+                  (dom/h2 (dom/text "Statistics"))
+                  (dom/span (dom/text "Number of Students:"))
+                  (history/link [::student-list] (dom/text (ffirst (e/server (dt/q '[:find (count ?e)
+                                                                                     :where [?e :student/id _]] db))))))
+                (dom/div
+                  (dom/span (dom/text "Number of Courses:"))
+                  (history/link [::course-list] (dom/text (ffirst (e/server (dt/q '[:find (count ?e)
+                                                                                    :where [?e :course/id _]] db))))))
+                (dom/div
+                  (dom/span (dom/text "Number of Instructors:"))
+                  (history/link [::instructor-list] (dom/text (ffirst (e/server (dt/q '[:find (count ?e)
+                                                                                        :where [?e :instructor/id _]] db))))))
+                (dom/div
+                  (history/link [::course-search] (dom/text "Course Search")) (dom/text " ")
+                  (history/link [::student-search] (dom/text "Student Search")) (dom/text " ")
+                  (history/link [::student-list] (dom/text "Student List")) (dom/text " ")
+                  (history/link [::create-page] (dom/text "Create Student")) (dom/text " ")
+                  (history/link [::create-course] (dom/text "Create Course") (dom/text " "))
+                  (history/link [::admin] (dom/text "Admin") (dom/text " ")))))))
+
   (dom/link (dom/props {:rel :stylesheet, :href "gridsheet-optional.css"}))
   (dom/div (dom/props {:class "user-gridsheet-demo"})
-    (dom/div (dom/text "Nav: ")
-      (history/link [::summary] (dom/text "home")) (dom/text " ")
-      (history/link [::db-stats] (dom/text "db-stats")) (dom/text " "))
+    #_(dom/div (dom/text "Nav: ")
+               (history/link [::summary] (dom/text "home")) (dom/text " ")
+               (history/link [::test] (dom/text "test")) (dom/text " ")
+               (history/link [::course-search] (dom/text "Course Search")) (dom/text " ")
+               (history/link [::student-search] (dom/text "Student Search")) (dom/text " ")
+               (history/link [::student-list] (dom/text "Student List")) (dom/text " "))
+
 
     (case page
       ::summary (history/router 1 (e/server (Attributes.)))
       ::attribute (history/router 2 (e/server (AttributeDetail. x)))
+      ::student (history/router 2 (e/server (StudentInfo. x)))
       ::tx (history/router 2 (e/server (TxDetail. x)))
       ::entity (do (history/router 2
                      (history/router ::entity-detail (e/server (EntityDetail. x)))
                      (history/router ::entity-history (e/server (EntityHistory. x)))))
-      ::db-stats (history/router 1 (e/server (DbStats.)))
+      ::test (history/router 1 (e/server (Test.)))
+      ::course-search (history/router 1 (e/server (CourseSearch.)))
+      ::student-search (history/router 1 (e/server (StudentSearch.)))
+      ::student-list (history/router 1 (e/server (StudentList.)))
+      ::course-list (history/router 1 (e/server (CourseList.)))
+      ::instructor-list (history/router 1 (e/server (InstructorList.)))
+      ::create-page (history/router 1 (e/server (app.create-data/CreateData.)))
+      ::create-course (history/router 1 (e/server (app.create-course/CreateData.)))
+      ::admin (history/router 1 (e/server (app.admin/DomItem.)))
       (e/client (dom/text "no matching route: " (pr-str page))))))
 
 (def read-edn-str (partial clojure.edn/read-string
                     {:readers #?(:cljs {'goog.math/Long goog.math.Long/fromString} ; datomic cloud long ids
                                  :clj {})}))
+
+
 
 (e/defn DatomicBrowser []
         (e/client
@@ -200,26 +380,14 @@
                     history/decode #(or (contrib.ednish/decode-path % read-edn-str) [::summary])]
 
             (history/router (history/HTML5-History.)
-              (set! (.-title js/document) (str (clojure.string/capitalize (name (first history/route)))
-                                            " - Datomic Browser"))
-              (dom/pre (dom/text (contrib.str/pprint-str history/route)))
+                            (dom/pre (dom/text (contrib.str/pprint-str history/route)))
+                            (e/server
+                              (binding [conn @(requiring-resolve 'user/datomic-conn)]
+                                (binding [db (dt/db conn)]
+                                  (e/client (Page. history/route)))))))))
 
-              (e/server
-                (binding [conn @(requiring-resolve 'user/datomic-conn)]
 
-                  (binding [db (d/db conn)]
-                    (binding [schema (new (dx/schema> db))]
-                      (e/client
-                        (Page. history/route)))))))))
-        (e/client
-          (e/server
-            (binding [conn @(requiring-resolve 'user/datomic-conn)]
-              (binding [db (d/db conn)]
-                (e/client
-                  (dom/text (str (d/q '[:find (pull ?e [*])
-                                        :where
-                                        [?e :student/id _]
-                                        [?e :student/department :department/matematik]] db)))))))))
+
 
 
 (comment

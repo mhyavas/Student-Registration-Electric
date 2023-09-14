@@ -12,7 +12,10 @@
             [hyperfiddle.electric :as e]
             [hyperfiddle.electric-dom2 :as dom]
             [hyperfiddle.history :as history]
-            [missionary.core :as m]))
+            [missionary.core :as m]
+            #?(:clj [datomic.client.api :as dt])
+            app.customer
+            app.supplier))
 
 (e/def conn)
 (e/def db)
@@ -171,6 +174,12 @@
     :label/type {:count 870}
     ... ...}})
 
+(e/defn Main []
+        (e/client
+          (dom/div
+            (history/link [::customer] (dom/text "Customer Side")))
+          (dom/div
+            (history/link [::supplier] (dom/text "Supplier Side")))))
 (e/defn Page [[page x]]
   (dom/h1 (dom/text "Datomic browser"))
   (dom/link (dom/props {:rel :stylesheet, :href "gridsheet-optional.css"}))
@@ -187,6 +196,9 @@
                      (history/router ::entity-detail (e/server (EntityDetail. x)))
                      (history/router ::entity-history (e/server (EntityHistory. x)))))
       ::db-stats (history/router 1 (e/server (DbStats.)))
+      ::main (history/router 1 (e/server (Main.)))
+      ::customer (history/router 1 (e/server (app.customer/Customer.)))
+      ::supplier (history/router 1 (e/server (app.supplier/Supplier.)))
       (e/client (dom/text "no matching route: " (pr-str page))))))
 
 (def read-edn-str (partial clojure.edn/read-string
@@ -197,7 +209,7 @@
         (e/client
           (binding [dom/node js/document.body
                     history/encode contrib.ednish/encode-uri
-                    history/decode #(or (contrib.ednish/decode-path % read-edn-str) [::summary])]
+                    history/decode #(or (contrib.ednish/decode-path % read-edn-str) [::main])]
 
             (history/router (history/HTML5-History.)
               (set! (.-title js/document) (str (clojure.string/capitalize (name (first history/route)))
@@ -207,19 +219,11 @@
               (e/server
                 (binding [conn @(requiring-resolve 'user/datomic-conn)]
 
-                  (binding [db (d/db conn)]
+                  (binding [db (dt/db conn)]
                     (binding [schema (new (dx/schema> db))]
                       (e/client
-                        (Page. history/route)))))))))
-        (e/client
-          (e/server
-            (binding [conn @(requiring-resolve 'user/datomic-conn)]
-              (binding [db (d/db conn)]
-                (e/client
-                  (dom/text (str (d/q '[:find (pull ?e [*])
-                                        :where
-                                        [?e :student/id _]
-                                        [?e :student/department :department/matematik]] db)))))))))
+                        (Page. history/route))))))))))
+
 
 
 (comment

@@ -18,7 +18,22 @@
 (e/def db)
 (e/def schema)
 
-
+(e/defn RecentTx []
+  (e/client (dom/h1 (dom/text "Recent Txs")))
+  (Explorer.
+    (treelister (new (->> (d/datoms> db {:index :aevt, :components [:db/txInstant]})
+                       (m/reductions conj ())
+                       (m/relieve {})))
+      (fn [_]) any-matches?)
+    {::gridsheet/page-size 30
+     ::gridsheet/row-height 24
+     ::gridsheet/columns [:db/id :db/txInstant]
+     ::gridsheet/grid-template-columns "10em auto"
+     ::gridsheet/Format
+     (e/fn [[e _ v tx op :as record] a]
+       (case a
+         :db/id (e/client (history/link [::tx tx] (dom/text tx)))
+         :db/txInstant (e/client (dom/text (pr-str v))) #_(e/client (.toLocaleDateString v))))}))
 
 (e/defn Attributes []
   (e/client (dom/h1 (dom/text "Attributes")))
@@ -177,8 +192,8 @@
   (dom/div (dom/props {:class "user-gridsheet-demo"})
     (dom/div (dom/text "Nav: ")
       (history/link [::summary] (dom/text "home")) (dom/text " ")
-      (history/link [::db-stats] (dom/text "db-stats")) (dom/text " "))
-
+      (history/link [::db-stats] (dom/text "db-stats")) (dom/text " ")
+      (history/link [::recent-tx] (dom/text "recent-tx")))
     (case page
       ::summary (history/router 1 (e/server (Attributes.)))
       ::attribute (history/router 2 (e/server (AttributeDetail. x)))
@@ -187,6 +202,7 @@
                      (history/router ::entity-detail (e/server (EntityDetail. x)))
                      (history/router ::entity-history (e/server (EntityHistory. x)))))
       ::db-stats (history/router 1 (e/server (DbStats.)))
+      ::recent-tx (history/router 1 (e/server (RecentTx.)))
       (e/client (dom/text "no matching route: " (pr-str page))))))
 
 (def read-edn-str (partial clojure.edn/read-string
@@ -194,36 +210,19 @@
                                  :clj {})}))
 
 (e/defn DatomicBrowser []
-        (e/client
-          (binding [dom/node js/document.body
-                    history/encode contrib.ednish/encode-uri
-                    history/decode #(or (contrib.ednish/decode-path % read-edn-str) [::summary])]
+  (e/client
+    (binding [dom/node js/document.body
+              history/encode contrib.ednish/encode-uri
+              history/decode #(or (contrib.ednish/decode-path % read-edn-str) [::summary])]
 
-            (history/router (history/HTML5-History.)
-              (set! (.-title js/document) (str (clojure.string/capitalize (name (first history/route)))
-                                            " - Datomic Browser"))
-              (dom/pre (dom/text (contrib.str/pprint-str history/route)))
+      (history/router (history/HTML5-History.)
+        (set! (.-title js/document) (str (clojure.string/capitalize (name (first history/route)))
+                                      " - Datomic Browser"))
+        (dom/pre (dom/text (contrib.str/pprint-str history/route)))
 
-              (e/server
-                (binding [conn @(requiring-resolve 'user/datomic-conn)]
-
-                  (binding [db (d/db conn)]
-                    (binding [schema (new (dx/schema> db))]
-                      (e/client
-                        (Page. history/route)))))))))
-        (e/client
-          (e/server
-            (binding [conn @(requiring-resolve 'user/datomic-conn)]
-              (binding [db (d/db conn)]
+        (e/server
+          (binding [conn @(requiring-resolve 'user/datomic-conn)]
+            (binding [db (d/db conn)]
+              (binding [schema (new (dx/schema> db))]
                 (e/client
-                  (dom/text (str (d/q '[:find (pull ?e [*])
-                                        :where
-                                        [?e :student/id _]
-                                        [?e :student/department :department/matematik]] db)))))))))
-
-
-(comment
-
-
-  ;end
-  ,)
+                  (Page. history/route))))))))))

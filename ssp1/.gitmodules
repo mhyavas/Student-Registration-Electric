@@ -1,3 +1,0 @@
-[submodule "vendor/electric"]
-	path = vendor/electric
-	url = git@github.com:hyperfiddle/electric.git

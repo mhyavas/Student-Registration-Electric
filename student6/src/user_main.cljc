@@ -44,7 +44,11 @@
     #_wip.demo-stage-ui4
     #_wip.datomic-browser))
 
-
+(e/defn test2 []
+        (e/server
+          (e/client
+            (dom/text "test3"))))
+(def !state (atom {:student ""}))
 (e/defn NotFoundPage []
   (e/client (dom/h1 (dom/text "Page not found"))))
 
@@ -80,6 +84,7 @@
       ::demos/seven-guis-crud demo.seven-gui-5-crud/App
       ::demos/tic-tac-toe demo.tic-tac-toe/App
       `demo.demo-svg/SVG demo.demo-svg/SVG
+      ;::test (history/router 1 (e/server (app.t01/test2.)))
       ;`demo.demo-reagent-interop/ReagentInterop (when react-available demo.demo-reagent-interop/ReagentInterop)
       ;::demos/dennis-exception-leak wip.dennis-exception-leak/App2
       ;::demos/demo-stage-ui4 wip.demo-stage-ui4/Demo

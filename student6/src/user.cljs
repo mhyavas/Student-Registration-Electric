@@ -38,7 +38,7 @@
 (def electric-main
   (hyperfiddle.electric/boot ; Electric macroexpansion - Clojure to signals compiler
     (binding [hyperfiddle.electric-dom2/node js/document.body]
-      (app.t01/Test.))))
+      (user-main/Main.))))
 
 (defonce reactor nil)
 

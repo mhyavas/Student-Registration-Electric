@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ClojureProjectResolveSettings">
+    <item key="hyperfiddle.electric/fn" resolves-as="clojure.core/fn" />
+    <item key="hyperfiddle.electric/def" resolves-as="clojure.core/def" />
+    <item key="hyperfiddle.electric/for" resolves-as="clojure.core/for" />
+    <item key="hyperfiddle.electric/defn" resolves-as="clojure.core/defn" />
+    <currentScheme>IDE</currentScheme>
+  </component>
+</project>

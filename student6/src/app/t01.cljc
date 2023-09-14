@@ -5,7 +5,9 @@
             [hyperfiddle.electric-dom2 :as dom]
             [hyperfiddle.electric-ui4 :as ui]
             [hyperfiddle.history :as history]
+            [hyperfiddle.api :as hf]
             #?(:clj [electric-server-java8-jetty9 :as jetty])
+            [contrib.electric-goog-history :as goog]
             #?(:clj [ajax.core :refer [GET POST]])
             #?(:cljs goog.object)))
 
@@ -19,12 +21,19 @@
                 (content-type "text/html"))))
 
 
-(def !state (atom {:student ""}))
-(e/defn Test []
+(e/defn test2 []
         (e/server
          (e/client
-           (dom/div
-             (history/link [`app.todo-list/Todo-List] "test")))))
+           (dom/text "test3"))))
+(def !state (atom {:student ""}))
+
+
+
+(e/defn Test []
+        (e/client
+          (dom/text "Testing version 2")
+          #_(history/link [:test] (dom/text "home"))))
+
 
 
 

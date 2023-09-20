@@ -28,7 +28,7 @@
 
   ; inject datomic root bindings
   (alter-var-root #'datomic-client (constantly (datomic.client.api/client {:server-type :dev-local :storage-dir "C:\\Users\\amibroker\\Desktop\\clj-study\\study-electric\\ssp-db" :system "ci"})))
-  (alter-var-root #'datomic-conn (constantly (datomic.client.api/connect datomic-client "SSP")))
+  (alter-var-root #'datomic-conn (constantly (datomic.client.api/connect datomic-client {:db-name "SSP"})))
 
   ; inject test database, for repl only
   (require '[datomic.client.api.async :as d])

@@ -181,11 +181,11 @@
           (dom/div
             (history/link [::supplier] (dom/text "Supplier Side")))))
 (e/defn Page [[page x]]
-  (dom/h1 (dom/text "Datomic browser"))
+  (dom/h1 (dom/text "Software Sourcing Platform"))
   (dom/link (dom/props {:rel :stylesheet, :href "gridsheet-optional.css"}))
   (dom/div (dom/props {:class "user-gridsheet-demo"})
     (dom/div (dom/text "Nav: ")
-      (history/link [::summary] (dom/text "home")) (dom/text " ")
+      (history/link [::main] (dom/text "home")) (dom/text " ")
       (history/link [::db-stats] (dom/text "db-stats")) (dom/text " "))
 
     (case page

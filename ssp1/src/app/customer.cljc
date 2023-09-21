@@ -5,6 +5,7 @@
     [hyperfiddle.electric :as e]
     [hyperfiddle.electric-dom2 :as dom]
     [hyperfiddle.history :as history]
+    [hyperfiddle.electric-ui4 :as ui4]
     #?(:clj [datomic.client.api :as dt])
     #?(:cljs [cljs-time.core :as ct])))
 
@@ -19,10 +20,41 @@
 
 (def !state-project (atom {:project {:title       ""
                                      :status      :inactive
-                                     :create-date ""
+                                     :create-date (getTime)
                                      :description ""
                                      :types       ""
                                      :customer    ""}}))
+
+#?(:clj (defn project-next-id [db]
+          (if (empty? (dt/q '[:find (max ?id)
+                              :where [_ :project/id ?id]] db))
+            1
+            (inc (ffirst (dt/q '[:find (max ?id)
+                                 :where [_ :project/id ?id]] db))))))
+
+#?(:clj (defn CreateProject [id title status create-date description types customer db]
+          (dt/transact db {:tx-data [{:project/id id
+                                      :project/title title
+                                      :project/status status
+                                      :project/create_date create-date
+                                      :project/description description
+                                      :project/types types
+                                      :project/customer customer}]})))
+
+(defn set-project-title! [title]
+  (swap! !state-project assoc-in [:project :title] title))
+
+(defn set-project-create_date! []
+  (swap! !state-project assoc-in [:project :create-date] (getTime)))
+
+(defn set-project-description! [desc]
+  (swap! !state-project assoc-in [:project :description] desc))
+
+(defn set-project-types! [str_types]
+  (swap! !state-project assoc-in [:project :types] str_types))
+
+(defn set-project-customer! [customer]
+  (swap! !state-project assoc-in [:project :customer] customer))
 
 (e/defn Main []
         (e/client
@@ -32,7 +64,6 @@
                 (e/client
                   (dom/h2 (dom/text "Please Select Your Company"))
                   #_(dom/text (str (.toLocaleDateString (js/Date.))))
-                  (dom/text (str (getTime)))
                   (dom/div
                     (dom/table
                       (dom/th (dom/text "Name"))
@@ -49,7 +80,39 @@
             (binding [db (dt/db conn)]
               (e/client
                 (dom/h2 (dom/text "Creating New Project for " name))
-                (dom/div))))))
+                (let [state (e/watch !state-project)]
+                  (let [project (:project state)]
+                    (dom/div
+                      (dom/span (dom/text "title:"))
+                      (ui4/input (:title project) (e/fn [v] (set-project-title! v)))
+                      (dom/span (dom/text "description:"))
+                      (ui4/input (:description project) (e/fn [v] (set-project-description! v)))
+                      (dom/span (dom/text "type:"))
+                      (e/server (ui4/select (:types project)
+                                            (e/fn V! [v] (e/client (set-project-types! v)))
+                                            (e/fn Options [] (for [k (e/server (flatten (dt/q '[:find ?type
+                                                                                                :where [_ :type/name ?type]] db)))]
+                                                               k))
+                                            (e/fn OptionLabel [x] x)))
+                      (dom/div (ui4/button (e/fn []
+                                                 (set-project-customer! name)
+                                                 (set-project-create_date!)
+
+                                                 (e/server (CreateProject (project-next-id db)
+                                                                          (:title stage)
+                                                                          (:status stage)
+                                                                          (:create-date stage)
+                                                                          (:description stage)
+                                                                          (e/server (into [] (flatten (d/q '[:find ?e
+                                                                                                             :in $ ?name
+                                                                                                             :where [?e :type/name ?name]] db (:types stage)))))
+                                                                          (e/server (into [] (flatten (d/q '[:find ?e
+                                                                                                             :in $ ?name
+                                                                                                             :where [?e :customer/name ?name]] db (:customer stage)))))
+                                                                          !conn)))
+
+                                           (dom/text "Create Instructor")))))))))))
+
 
 
 (e/defn CustomerPage [name]

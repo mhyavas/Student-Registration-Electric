@@ -17,3 +17,8 @@
               [?e :project/customer ?customer]
               [?customer :customer/name ?name]] db)
 ;=> [["Tesla Inc."]]
+
+
+(into [] (flatten (d/q '[:find ?e
+                         :in $ ?name
+                         :where [?e :type/name ?name]] db "Automation")))

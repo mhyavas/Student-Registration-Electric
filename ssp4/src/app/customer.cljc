@@ -118,7 +118,7 @@
                      (e/for [value (e/server (flatten (dt/q '[:find (pull ?m [*])
                                                               :in $ ?title
                                                               :where [?e :project/title ?title]
-                                                              [?m :proposal/project ?e]] db (:project/title name))))]
+                                                                     [?m :proposal/project ?e]] db (:project/title name))))]
                             (dom/tr
                               (dom/td (dom/text (e/server (ffirst (dt/q '[:find ?name
                                                                           :in $ ?id
@@ -156,9 +156,11 @@
                                                                    (if (and (.-checked dom/node) (not (some (partial = (str (.-name dom/node))) (:types project))))
                                                                      #_(swap! data update :nums conj {:first 1 :second 2})
                                                                      (swap! !state-project update-in [:project :types] conj (str (.-name dom/node)))
-                                                                     (if (some (partial = (str (.-name dom/node))) (:types project)))
-                                                                     (swap! !state-project update-in [:project :types] (fn [types] (vec (remove #(= (str (.-name dom/node)) %) types))))
-                                                                     nil))))
+                                                                     (if (some (partial = (str (.-name dom/node))) (:types project))
+                                                                       (swap! !state-project update-in [:project :types] (fn [types] (vec (remove #(= (str (.-name dom/node)) %) types))))
+                                                                       nil)))))
+
+
 
 
 

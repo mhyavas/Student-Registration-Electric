@@ -82,7 +82,7 @@
               (let [customer (:customer state)]
                 (dom/div
                   (dom/span (dom/text "Customer Name"))
-                  (ui4/input (:name customer) (e/dn [v] (swap! !state-cs assoc-in [:customer :name] v))))
+                  (ui4/input (:name customer) (e/fn [v] (swap! !state-cs assoc-in [:customer :name] v))))
                 (dom/div
                   (ui4/button (e/fn []
                                     (e/server (dt/transact conn {:tx-data [{:customer/id (next-customer-id (dt/db conn))

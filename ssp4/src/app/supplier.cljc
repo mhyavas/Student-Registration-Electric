@@ -12,13 +12,42 @@
 (e/def conn)
 (e/def db)
 
-(def !state-supplier (atom {:selected-supllier ""}))
+(def !state-supplier (atom {:selected-supllier ""
+                            :keyword ""}))
 
 (defn set-supplier [name]
   (swap! !state-supplier assoc-in [:selected-supplier] name))
 
+(e/defn FindProject [supplier-name]
+        (e/client
+          (let [state (e/watch !state-supplier)]
+            ) (dom/text supplier-name)))
+
 (e/defn ProjectDetail [project-name]
-        (e/client (dom/text project-name)))
+        (e/client
+          (dom/h2 (dom/text "Details of " project-name))
+          (dom/table (dom/props {:border "1px" "solid" "black"})
+                     (dom/th (dom/text "Title"))
+                     (dom/th (dom/text "Status"))
+                     (dom/th (dom/text "Author"))
+                     (dom/th (dom/text "Description"))
+                     (dom/th (dom/text "Deadline for Proposal"))
+                     (dom/th (dom/text "Types"))
+                     (e/for [value (e/server (dt/q '[:find (pull ?e [*])
+                                                     :in $ ?project-name
+                                                     :where [?e :project/title ?project-name]] db project-name))]
+                            (dom/tr
+                              (dom/td (dom/text (:project/title (first value))))
+                              (dom/td (dom/text (:project/status (first value))))
+                              (dom/td (dom/text (e/server (ffirst (dt/q '[:find ?name
+                                                                          :in $ ?id
+                                                                          :where [?id :author/name ?name]] db (:db/id (:project/author (first value))))))))
+                              (dom/td (dom/text (:project/description (first value))))
+                              (dom/td (dom/text (e/server (java.util.Date. (+ (* 7 86400 1000)  (:project/create_date (first value)))))))
+                              (dom/td (dom/text (e/server (map (fn [m]
+                                                                 (ffirst (dt/q '[:find ?name
+                                                                                 :in $ ?id
+                                                                                 :where [?id :type/name ?name]] db (:db/id m)))) (:project/types (first value)))))))))))
 (e/defn SupplierMain [name]
         (e/client
           (set-supplier name)
@@ -71,7 +100,8 @@
           (dom/div (dom/props {:class "user-gridsheet-demo"})
                    (let [state (e/watch !state-supplier)]
                      (dom/div (dom/text "Nav:")
-                              (history/link [::main] (dom/text "Supplier Company Selection")) (dom/text " ")))
+                              (history/link [::main] (dom/text "Supplier Company Selection")) (dom/text " ")
+                              (history/link [::find-project (:selected-supplier state)] (dom/text "Find Project")) (dom/text " ")))
 
 
 
@@ -80,6 +110,7 @@
                      ::main (history/router 1 (e/server (Main.)))
                      ::supplier (history/router 2 (e/server (SupplierMain. x)))
                      ::project-detail (history/router 2 (e/server (ProjectDetail. x)))
+                     ::find-project (history/router 2 (e/server (FindProject. x)))
                      (e/client (dom/text "no matching route: " (pr-str page)))))))
 
 (def read-edn-str (partial clojure.edn/read-string

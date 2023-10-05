@@ -124,7 +124,7 @@
                                                                           :in $ ?id
                                                                           :where [?id :supplier/name ?name]] db (:db/id (:proposal/supplier value)))))))
                              (dom/td (dom/text (:proposal/price value)))
-                             (dom/td (dom/text (:proposal/timestamp value)))
+                             (dom/td (dom/text (e/server (java.util.Date. (+ (* 7 86400 1000)  (:proposal/timestamp (first value)))))))
                              (dom/td (ui4/button (e/fn [e]
                                                        (e/server (dt/transact conn {:tx-data [{:db/id                 (:db/id name)
                                                                                                :project/status        :active

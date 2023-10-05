@@ -13,15 +13,68 @@
 (e/def db)
 
 (def !state-supplier (atom {:selected-supllier ""
-                            :keyword ""}))
+                            :types []}))
 
 (defn set-supplier [name]
   (swap! !state-supplier assoc-in [:selected-supplier] name))
 
+(e/defn SendProposal [project]
+        (e/client (dom/text project)))
+
 (e/defn FindProject [supplier-name]
-        (e/client
-          (let [state (e/watch !state-supplier)]
-            ) (dom/text supplier-name)))
+        (e/server
+          (binding [conn @(requiring-resolve 'user/datomic-conn)]
+            (binding [db (dt/db conn)]
+              (e/client
+                (let [project (e/watch !state-supplier)]
+                  (let [!filter-project (atom ""), filter-project (e/watch !filter-project)]
+                   (dom/span (dom/text "Project search via type: \n"))
+                   (e/for [value (e/server (dt/q '[:find ?name
+                                                   :where [?e :type/name ?name]] (dt/db conn)))]
+                          (dom/label
+                            (dom/input (dom/props {:type  "checkbox"
+                                                   :name  (first value)
+                                                   :value "true"})
+                                       (dom/on "change" (e/fn [v]
+                                                              (if (and (.-checked dom/node) (not (some (partial = (str (.-name dom/node))) (:types project))))
+                                                                #_(swap! data update :nums conj {:first 1 :second 2})
+                                                                (swap! !state-supplier update-in [:types] conj (str (.-name dom/node)))
+                                                                (if (some (partial = (str (.-name dom/node))) (:types project))
+                                                                  (swap! !state-supplier update-in [:types] (fn [types] (vec (remove #(= (str (.-name dom/node)) %) types))))
+                                                                  nil))
+                                                              (reset! !filter-project (str (.-name dom/node))))))
+
+
+
+
+
+                            (dom/text (first value))))
+                   (dom/text filter-project)
+                   (dom/table (dom/props {:border "1px" "solid" "black"})
+                     (dom/th (dom/text "Title"))
+                     (dom/th (dom/text "Status"))
+                     (dom/th (dom/text "Description"))
+                     (dom/th (dom/text "Author"))
+                     (dom/th (dom/text "Company"))
+                     (dom/th (dom/text "Create Date"))
+                     (dom/th (dom/text "Proposal"))
+                     (e/for [value (e/server (dt/q '[:find (pull ?p [*])
+                                                     :in $  [?t]
+                                                     :where [?p :project/types ?t]] db [(ffirst (dt/q '[:find ?e :in $ ?type :where [?e :type/name ?type]] db filter-project))]))]
+                            (dom/tr
+                              (dom/td (dom/text (:project/title (first value))))
+                              (dom/td (dom/text (:project/status (first value))))
+                              (dom/td (dom/text (:project/description (first value))))
+                              (dom/td (dom/text (e/server (ffirst (dt/q '[:find ?name
+                                                                          :in $ ?a
+                                                                          :where [?a :author/name ?name]] db (:db/id (:project/author (first value))))))))
+                              (dom/td (dom/text (e/server (ffirst (dt/q '[:find ?company
+                                                                          :in $ ?c
+                                                                          :where [?c :customer/name ?company]] db (:db/id (first (:project/customer (first value)))))))))
+                              (dom/td (dom/text (e/server (java.util.Date. (+ (* 7 86400 1000)  (:project/create_date (first value)))))))
+                              (dom/td (history/link [::send-proposal (:db/id (first value))] (dom/text "Select")))))))))))))
+
+
 
 (e/defn ProjectDetail [project-name]
         (e/client
@@ -111,6 +164,7 @@
                      ::supplier (history/router 2 (e/server (SupplierMain. x)))
                      ::project-detail (history/router 2 (e/server (ProjectDetail. x)))
                      ::find-project (history/router 2 (e/server (FindProject. x)))
+                     ::send-proposal (history/router 2 (e/server (SendProposal. x)))
                      (e/client (dom/text "no matching route: " (pr-str page)))))))
 
 (def read-edn-str (partial clojure.edn/read-string

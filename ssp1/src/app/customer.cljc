@@ -16,14 +16,15 @@
 (e/def db)
 
 #?(:cljs (defn getTime []
-           (ct/now)))
+           (ct/now))) ;todo Datetime yerine timestamp kullan!
 
 (def !state-project (atom {:project {:title       ""
                                      :status      :inactive
                                      :create-date (getTime)
                                      :description ""
                                      :types       ""
-                                     :customer    ""}}))
+                                     :customer    ""}
+                           :selected-company ""}))
 
 #?(:clj (defn project-next-id [db]
           (if (empty? (dt/q '[:find (max ?id)
@@ -57,20 +58,20 @@
   (swap! !state-project assoc-in [:project :customer] customer))
 
 (e/defn Main []
-        (e/client
-          (e/server
-            (binding [conn @(requiring-resolve 'user/datomic-conn)]
-              (binding [db (dt/db conn)]
-                (e/client
-                  (dom/h2 (dom/text "Please Select Your Company"))
-                  #_(dom/text (str (.toLocaleDateString (js/Date.))))
-                  (dom/div
-                    (dom/table
-                      (dom/th (dom/text "Name"))
-                      (e/for [value (e/server (dt/q '[:find (pull ?e [*])
-                                                      :where [?e :customer/id _]] db))]
-                             (dom/tr
-                               (dom/td (history/link [::customer (:customer/name (first value))] (dom/text (:customer/name (first value)))))))))))))))
+        (e/server
+          (binding [conn @(requiring-resolve 'user/datomic-conn)]
+            (binding [db (dt/db conn)]
+              (e/client
+                (dom/h2 (dom/text "Please Select Your Company"))
+                #_(dom/text (str (.toLocaleDateString (js/Date.))))
+                (dom/div
+                  (dom/table
+                    (dom/th (dom/text "Name"))
+                    (e/for [value (e/server (dt/q '[:find (pull ?e [*])
+                                                    :where [?e :customer/id _]] db))]
+                           (dom/tr
+                             (dom/td (history/link [::customer (:customer/name (first value))] (dom/text (:customer/name (first value))))))))))))))
+
 
 
 

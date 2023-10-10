@@ -22,3 +22,31 @@
 (into [] (flatten (d/q '[:find ?e
                          :in $ ?name
                          :where [?e :type/name ?name]] db "Automation")))
+
+(ffirst (d/q '[:find ?e
+               :where [?e :customer/name "Microsoft Inc."]] db))
+(d/q '[:find (pull ?e [*])
+       :in $ ?name
+       :where [?e :project/customer ?name]] db (ffirst (d/q '[:find ?e
+                                                                   :where [?e :customer/name "Tesla Inc."]] db)))
+
+(d/q '[:find (pull ?e [*])
+       :where [?e :proposal/id _]] db)
+
+(d/q '[:find (pull ?m [*])
+       :where [?e :project/title "Trade Automation"]
+              [?m :proposal/project ?e]] db)
+
+(d/q '[:find (pull ?e [*])
+       :in $ ?name
+       :where [?e :project/customer ?name]] db (ffirst (d/q '[:find ?e :in $ ?name :where [?e :customer/name ?name]] db "Tesla Inc.")))
+
+
+
+(d/q '[:find ?id
+       :where [?e :db/ident ?id]]
+     db)
+
+(into [] (map (fn [s] (into [] (flatten (d/q '[:find ?e
+                                               :in $ ?name
+                                               :where [?e :type/name ?name]] db s)))) ["SAP" "Automation"]))

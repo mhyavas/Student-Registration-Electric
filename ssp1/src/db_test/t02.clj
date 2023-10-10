@@ -7,7 +7,7 @@
                        :system      "ci"}))
 
 
-#_(d/create-database client {:db-name "SSP"})
+(d/create-database client {:db-name "SSP"})
 
 (def conn (d/connect client {:db-name "SSP"}))
 (def db (d/db conn))
@@ -52,7 +52,7 @@
                        :db/valueType :db.type/ref
                        :db/cardinality :db.cardinality/one}
                       {:db/ident :proposal/timestamp
-                       :db/valueType :db.type/instant
+                       :db/valueType :db.type/long
                        :db/cardinality :db.cardinality/one}])
 
 (d/transact conn {:tx-data proposal-schema})
@@ -68,7 +68,7 @@
                       :db/valueType   :db.type/keyword
                       :db/cardinality :db.cardinality/one}
                      {:db/ident       :project/create_date
-                      :db/valueType   :db.type/instant
+                      :db/valueType   :db.type/long
                       :db/cardinality :db.cardinality/one}
                      {:db/ident       :project/tender_winner
                       :db/valueType   :db.type/ref
@@ -80,10 +80,10 @@
                       :db/valueType   :db.type/string
                       :db/cardinality :db.cardinality/one}
                      {:db/ident       :project/deadline
-                      :db/valueType   :db.type/instant
+                      :db/valueType   :db.type/long
                       :db/cardinality :db.cardinality/one}
                      {:db/ident       :project/start_date
-                      :db/valueType   :db.type/instant
+                      :db/valueType   :db.type/long
                       :db/cardinality :db.cardinality/one}
                      {:db/ident       :project/types
                       :db/valueType   :db.type/ref
@@ -93,7 +93,10 @@
                       :db/cardinality :db.cardinality/many}
                      {:db/ident :project/proposal
                       :db/valueType :db.type/ref
-                      :db/cardinality :db.cardinality/many}])
+                      :db/cardinality :db.cardinality/many}
+                     {:db/ident :project/author
+                      :db/valueType :db.type/ref
+                      :db/cardinality :db.cardinality/one}])
 
 (d/transact conn {:tx-data project-schema})
 
@@ -133,7 +136,7 @@
                       :db/valueType :db.type/ref
                       :db/cardinality :db.cardinality/one}
                      {:db/ident :message/timestamp
-                      :db/valueType :db.type/instant
+                      :db/valueType :db.type/long
                       :db/cardinality :db.cardinality/one}
                      {:db/ident :message/message
                       :db/valueType :db.type/string
@@ -143,5 +146,42 @@
                       :db/cardinality :db.cardinality/one}])
 
 
+(def message-schema2 [{:db/ident :chat/id
+                       :db/valueType :db.type/long
+                       :db/unique :db.unique/identity
+                       :db/cardinality :db.cardinality/one}
+                      {:db/ident :chat/project
+                       :db/valueType :db.type/ref
+                       :db/cardinality :db.cardinality/one}
+                      {:db/ident :chat/from
+                       :db/valueType :db.type/ref
+                       :db/cardinality :db.cardinality/one}
+                      {:db/ident :chat/to
+                       :db/valueType :db.type/ref
+                       :db/cardinality :db.cardinality/one}
+                      {:db/ident :chat/messages
+                       :db/valueType :db.type/ref
+                       :db/cardinality :db.cardinality/many}
+                      {:db/ident :chat/subject
+                       :db/valueType :db.type/string
+                       :db/cardinality :db.cardinality/one}])
+
+(def message-content-schema [{:db/ident :msg/id
+                              :db/valueType :db.type/long
+                              :db/unique :db.unique/identity
+                              :db/cardinality :db.cardinality/one}
+                             {:db/ident :msg/message
+                              :db/valueType :db.type/string
+                              :db/cardinality :db.cardinality/one}
+                             {:db/ident :msg/timestamp
+                              :db/valueType :db.type/long
+                              :db/cardinality :db.cardinality/one}])
+
+(d/transact conn {:tx-data message-schema2})
+
+(d/transact conn {:tx-data message-content-schema})
 (d/transact conn {:tx-data message-schema})
 (new java.util.Date)
+
+
+

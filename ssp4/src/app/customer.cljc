@@ -71,6 +71,13 @@
                                         :project/customer customer
                                         :project/author author}]})))
 
+#?(:clj (defn next-msg-id [db]
+          (if (empty? (dt/q '[:find (max ?id)
+                              :where [_ :msg/id ?id]] db))
+            1
+            (inc (ffirst (dt/q '[:find (max ?id)
+                                 :where [_ :msg/id ?id]] db))))))
+
 
 (e/defn CreateAuthor [name]
         (e/client
@@ -101,7 +108,13 @@
                      (dom/tr
                        (dom/td (dom/text (:project/title name)))
                        (dom/td (dom/text (:project/status name)))
-                       (dom/td (dom/text (:project/create_date name)))
+                       (dom/td (dom/text (e/server (if (and
+                                                         (and
+                                                           (= (.getMonth (java.util.Date.)) (.getMonth (java.util.Date. (:project/create_date name))))
+                                                           (= (.getYear (java.util.Date.)) (.getYear (java.util.Date. (:project/create_date name)))))
+                                                         (= (.getDate (java.util.Date.)) (.getDate (java.util.Date. (:project/create_date name)))))
+                                                     (.format (java.text.SimpleDateFormat. "HH:mm:ss") (java.util.Date. (:project/create_date name)))
+                                                     (.format (java.text.SimpleDateFormat. "MM/dd/yyyy") (java.util.Date. (:project/create_date name))))) #_(:project/create_date name)))
                        (dom/td (dom/text (:project/description name)))
                        (dom/td (dom/text (e/server (flatten (map (fn [m] (flatten (dt/q '[:find ?name
                                                                                           :in $ ?e
@@ -124,7 +137,13 @@
                                                                           :in $ ?id
                                                                           :where [?id :supplier/name ?name]] db (:db/id (:proposal/supplier value)))))))
                              (dom/td (dom/text (:proposal/price value)))
-                             (dom/td (dom/text (e/server (java.util.Date. (+ (* 7 86400 1000)  (:proposal/timestamp (first value)))))))
+                             (dom/td (dom/text (e/server (if (and
+                                                               (and
+                                                                 (= (.getMonth (java.util.Date.)) (.getMonth (java.util.Date. (:proposal/timestamp value))))
+                                                                 (= (.getYear (java.util.Date.)) (.getYear (java.util.Date. (:proposal/timestamp value)))))
+                                                               (= (.getDate (java.util.Date.)) (.getDate (java.util.Date. (:proposal/timestamp value)))))
+                                                           (.format (java.text.SimpleDateFormat. "HH:mm:ss") (java.util.Date. (:proposal/timestamp value)))
+                                                           (.format (java.text.SimpleDateFormat. "MM/dd/yyyy") (java.util.Date. (:proposal/timestamp value)))))))
                              (dom/td (ui4/button (e/fn [e]
                                                        (e/server (dt/transact conn {:tx-data [{:db/id                 (:db/id name)
                                                                                                :project/status        :active
@@ -182,7 +201,7 @@
                                           (e/server (ProjectToDatomic (project-next-id (dt/db conn))
                                                                       (:title project)
                                                                       :inactive
-                                                                      (quot (System/currentTimeMillis) 1000)
+                                                                      (System/currentTimeMillis)
                                                                       (:description project)
                                                                       (type-finder (:types project) (dt/db conn))
                                                                       (customer-finder name (dt/db conn))
@@ -209,11 +228,68 @@
                           (dom/td (history/link [::project-detail (first value)] (dom/text (:project/title (first value)))))
                           (dom/td (dom/text (:project/status (first value)))))))))
 
+(e/defn ChatPage [[title customer]]
+        (e/server
+          (binding [conn @(requiring-resolve 'user/datomic-conn)]
+            (binding [db (dt/db conn)]
+              (e/client
+                (if (empty? (e/server (dt/q '[:find (pull ?e [*])
+                                              :in $ ?title ?customer
+                                              :where [?e :chat/subject ?title]
+                                              [?e :chat/from ?customer]] (dt/db conn)
+                                            title
+                                            (e/server
+                                              (ffirst
+                                                (dt/q '[:find ?e
+                                                        :in $ ?customer
+                                                        :where [?e :customer/name ?customer]] (dt/db conn)
+                                                      customer))))))
+                  (e/server (dt/transact conn {:tx-data [{:chat/id      (next-msg-id db)
+                                                          :chat/project (e/server (ffirst (dt/q '[:find ?e
+                                                                                                  :in $ ?title
+                                                                                                  :where [?e :project/title ?title]] (dt/db conn) title)))
+                                                          :chat/from    (e/server (ffirst (dt/q '[:find ?a
+                                                                                                  :in $ ?title
+                                                                                                  :where [?e :project/title ?title]
+                                                                                                  [?e :project/author ?a]] (dt/db conn) title)))
+                                                          :chat/to      (e/server (ffirst (dt/q '[:find ?supplier-id
+                                                                                                  :in $ ?project-title
+                                                                                                  :where [?p :project/title ?project-title]
+                                                                                                  [?p :project/tender_winner ?supplier-id]] db title)))
+                                                          :chat/subject title}]}))
+                  nil)
+                (dom/div
+                  (let [msg (e/server (dt/q '[:find (pull ?m [*])
+                                              :in $ ?title ;?customer
+                                              :where [?m :chat/subject ?title]
+                                              #_[?m :chat/from ?customer]] db title #_(ffirst (dt/q '[:find ?e :in $ ?customer :where [?e :customer/name ?customer]]
+                                                                                                    (dt/db conn) customer))))]
+                    (dom/text msg))))))))
+
+; todo Yukaridaki hata author yerine :chat/from author yerine customer gonderilmis. Bundan dolayi hata geliyor. Customer yerine author olarak degistir
+(e/defn MainMessage [info]
+        (e/server
+          (binding [conn @(requiring-resolve 'user/datomic-conn)]
+            (let [db (dt/db conn)]
+              (e/client
+                (dom/table
+                  (dom/th (dom/text "Project"))
+                  (dom/th (dom/text "Supplier"))
+                  (e/for [value (e/server (dt/q '[:find (pull ?e [*])
+                                                  :in $ ?name
+                                                  :where [?e :project/customer ?name]
+                                                         [?e :project/status :active]] db (ffirst (dt/q '[:find ?e :in $ ?name :where [?e :customer/name ?name]] db info))))]
+                         (dom/tr
+                           (dom/td (dom/text (:project/title (first value))))
+                           (dom/td (history/link [::chat [(:project/title (first value)) (e/server (ffirst (dt/q '[:find ?customer-name
+                                                                                                                   :in $ ?customer-id
+                                                                                                                   :where [?customer-id :customer/name ?customer-name]] db (:db/id (first (:project/customer (first value)))))))]] (dom/text (e/server (ffirst (dt/q '[:find ?name :in $ ?id :where [?id :supplier/name ?name]] db (:db/id (first (:project/tender_winner (first value))))))))))))))))))
+
+
+
 (e/defn Main []
         (e/client
           (dom/h2 (dom/text "Please Select Your Company"))
-          (dom/text (e/server (quot (System/currentTimeMillis) 1000))) ; Timestamp in seconds.
-          ; todo Change the datomic schema for create_date
           (dom/div
             (dom/table
               (dom/th (dom/text "Name"))
@@ -230,7 +306,8 @@
                               (history/link [::main] (dom/text "Company Selection")) (dom/text " ")
                               (history/link [::customer (:selected-company state)] (dom/text "Customer Main")) (dom/text " ")
                               (history/link [::create-project (:selected-company state)] (dom/text "Create Project")) (dom/text " ")
-                              (history/link [::create-author (:selected-company state)] (dom/text "Create Author")) (dom/text " ")))
+                              (history/link [::create-author (:selected-company state)] (dom/text "Create Author")) (dom/text " ")
+                              (history/link [::message (:selected-company state)] (dom/text "Messages")) (dom/text " ")))
 
 
 
@@ -240,6 +317,8 @@
                      ::create-project (history/router 2 (e/server (CreateProject. x)))
                      ::project-detail (history/router 2 (e/server (ProjectDetail. x)))
                      ::create-author (history/router 2 (e/server (CreateAuthor. x)))
+                     ::message (history/router 2 (e/server (MainMessage. x)))
+                     ::chat (history/router 2 (e/server (ChatPage. x)))
                      (e/client (dom/text "no matching route: " (pr-str page)))))))
 (def read-edn-str (partial clojure.edn/read-string
                            {:readers #?(:cljs {'goog.math/Long goog.math.Long/fromString} ; datomic cloud long ids

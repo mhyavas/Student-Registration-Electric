@@ -6,20 +6,64 @@
     [hyperfiddle.history :as history]
     [hyperfiddle.electric-ui4 :as ui4]
     [missionary.core :as m]
+    [contrib.str :refer [empty->nil]]
     clojure.string
+    app.message
     #?(:clj [datomic.client.api :as dt])))
 
 (e/def conn)
 (e/def db)
 
-(def !state-supplier (atom {:selected-supllier ""
-                            :types []}))
+(def !state-supplier (atom {:selected-supplier ""
+                            :types []
+                            :proposal {:supplier ""
+                                       :price ""
+                                       :project ""
+                                       :timestamp 0}}))
 
 (defn set-supplier [name]
   (swap! !state-supplier assoc-in [:selected-supplier] name))
 
-(e/defn SendProposal [project]
-        (e/client (dom/text project)))
+#?(:clj (defn next-proposal-id [db]
+          (if (empty? (dt/q '[:find (max ?id)
+                              :where [_ :proposal/id ?id]] db))
+            1
+            (inc (ffirst (dt/q '[:find (max ?id)
+                                 :where [_ :proposal/id ?id]] db))))))
+#?(:clj (defn next-chat-id [db]
+          (if (empty? (dt/q '[:find (max ?id)
+                              :where [_ :chat/id ?id]] db))
+            1
+            (inc (ffirst (dt/q '[:find (max ?id)
+                                 :where [_ :chat/id ?id]] db))))))
+#?(:clj (defn next-msg-id [db]
+          (if (empty? (dt/q '[:find (max ?id)
+                              :where [_ :msg/id ?id]] db))
+            1
+            (inc (ffirst (dt/q '[:find (max ?id)
+                                 :where [_ :msg/id ?id]] db))))))
+
+#?(:clj (defn vector-appender [vect value]
+          (conj vect value)))
+
+(e/defn SendProposal [[project supplier]]
+        (e/client
+          (dom/div
+            (let [supplier (e/watch !state-supplier)]
+              (let [proposal (:proposal supplier)]
+                (dom/text proposal)
+                (dom/h2 (dom/text "Creating Proposal for" (:project/title project)))
+                (dom/div
+                  (dom/span (dom/text "Price"))
+                  (ui4/input (:price proposal) (e/fn [v] (swap! !state-supplier assoc-in [:proposal :price] v))))
+                (dom/div
+                  (ui4/button (e/fn []
+                                    (e/server
+                                      (dt/transact conn {:tx-data [{:proposal/id        (next-proposal-id db)
+                                                                    :proposal/supplier  (:db/id (ffirst (dt/q '[:find (pull ?e [*]) :in $ ?name :where [?e :supplier/name ?name]] db (:selected-supplier supplier))))
+                                                                    :proposal/price     (Float/parseFloat (:price proposal))
+                                                                    :proposal/project   (:db/id project)
+                                                                    :proposal/timestamp (System/currentTimeMillis)}]}))) (dom/text "Send Proposal"))))) (dom/text project))))
 
 (e/defn FindProject [supplier-name]
         (e/server
@@ -71,8 +115,14 @@
                               (dom/td (dom/text (e/server (ffirst (dt/q '[:find ?company
                                                                           :in $ ?c
                                                                           :where [?c :customer/name ?company]] db (:db/id (first (:project/customer (first value)))))))))
-                              (dom/td (dom/text (e/server (java.util.Date. (+ (* 7 86400 1000)  (:project/create_date (first value)))))))
-                              (dom/td (history/link [::send-proposal (:db/id (first value))] (dom/text "Select")))))))))))))
+                              (dom/td (dom/text (e/server (if (and
+                                                                (and
+                                                                  (= (.getMonth (java.util.Date.)) (.getMonth (java.util.Date. (:project/create_date (first value)))))
+                                                                  (= (.getYear (java.util.Date.)) (.getYear (java.util.Date. (:project/create_date (first value))))))
+                                                                (= (.getDate (java.util.Date.)) (.getDate (java.util.Date. (:project/create_date (first value))))))
+                                                            (.format (java.text.SimpleDateFormat. "HH:mm:ss") (java.util.Date. (:project/create_date (first value))))
+                                                            (.format (java.text.SimpleDateFormat. "MM/dd/yyyy") (java.util.Date. (:project/create_date (first value))))))))
+                              (dom/td (history/link [::send-proposal [(first value) supplier-name]] (dom/text "Select")))))))))))))
 
 
 
@@ -124,17 +174,120 @@
                               (dom/td (dom/text (e/server (ffirst (dt/q '[:find ?status
                                                                           :in $ ?e
                                                                           :where [?e :project/status ?status]] db (:db/id (:proposal/project (first value))))))))
-                              (dom/td (dom/text (e/server (java.util.Date. (:proposal/timestamp (first value))))))
+                              (dom/td (dom/text (e/server (if (and
+                                                                (and
+                                                                  (= (.getMonth (java.util.Date.)) (.getMonth (java.util.Date. (:proposal/timestamp (first value)))))
+                                                                  (= (.getYear (java.util.Date.)) (.getYear (java.util.Date. (:proposal/timestamp (first value))))))
+                                                                (= (.getDate (java.util.Date.)) (.getDate (java.util.Date. (:proposal/timestamp (first value))))))
+                                                            (.format (java.text.SimpleDateFormat. "HH:mm:ss") (java.util.Date. (:proposal/timestamp (first value))))
+                                                            (.format (java.text.SimpleDateFormat. "MM/dd/yyyy") (java.util.Date. (:proposal/timestamp (first value))))))))
+
                               (dom/td (dom/text (e/server (ffirst (dt/q '[:find ?customer
                                                                           :in $ ?customer-id
                                                                           :where [?customer-id :customer/name ?customer]] db (ffirst (dt/q '[:find ?status
                                                                                                                                              :in $ ?e
                                                                                                                                              :where [?e :project/customer ?status]] db (:db/id (:proposal/project (first value)))))))))))))))
 
+(e/defn MainMessage [info]
+        (e/server
+          (binding [conn @(requiring-resolve 'user/datomic-conn)]
+            (let [db (dt/db conn)]
+              (e/client
+                (dom/table
+                  (dom/th (dom/text "Project"))
+                  (dom/th (dom/text "Customer"))
+                  (dom/th (dom/text "Author"))
+                  (e/for [value (e/server (flatten (map (fn [m] (dt/q '[:find (pull ?project-id [*])
+                                                                        :in $ ?project-id ?tender-winner
+                                                                        :where [?project-id :project/status :active]
+                                                                        [?project-id :project/tender_winner ?tender-winner]] db (:db/id (:proposal/project m)) (:db/id (:proposal/supplier m))))
+                                                        (flatten (dt/q '[:find (pull ?e [*])
+                                                                         :in $ ?supplier-name
+                                                                         :where [?s :supplier/name ?supplier-name]
+                                                                         [?e :proposal/supplier ?s]] db info)))))]
+                         (dom/tr
+                           (dom/td (dom/text (:project/title value)))
+                           (dom/td (dom/text (e/server (ffirst (dt/q '[:find ?name
+                                                                       :in $ ?e
+                                                                       :where [?e :customer/name ?name]] db (:db/id (first (:project/customer value))))))))
+                           (dom/td (history/link [::chat [(:project/title value) (e/server (ffirst (dt/q '[:find ?name
+                                                                                                           :in $ ?e
+                                                                                                           :where [?e :author/name ?name]] db (:db/id (:project/author value)))))]] (dom/text (e/server (ffirst (dt/q '[:find ?name :in $ ?e :where [?e :author/name ?name]] db (:db/id (:project/author value))))))))))))))))
+
+(e/defn ChatPage [[title author]]
+        (e/server
+          (binding [conn @(requiring-resolve 'user/datomic-conn)]
+            (e/client
+              (let [supplier (e/watch !state-supplier)]
+                (if (empty? (e/server (dt/q '[:find (pull ?e [*])
+                                              :in $ ?title ?supplier
+                                              :where [?e :chat/subject ?title]
+                                                     [?e :chat/from ?supplier]] (dt/db conn) title (e/server (ffirst (dt/q '[:find ?e :in $ ?supplier :where [?e :supplier/name ?supplier]] (dt/db conn) (:selected-supplier supplier)))))))
+                  (e/server (dt/transact conn {:tx-data [{:chat/id      (e/server (next-chat-id (dt/db conn)))
+                                                          :chat/project (e/server (ffirst (dt/q '[:find ?e
+                                                                                                  :in $ ?title
+                                                                                                  :where [?e :project/title ?title]] (dt/db conn) title)))
+                                                          :chat/from    (e/server (ffirst (dt/q '[:find ?e
+                                                                                                  :in $ ?supplier
+                                                                                                  :where [?e :supplier/name ?supplier]] (dt/db conn) (:selected-supplier supplier))))
+                                                          :chat/to (e/server (ffirst (dt/q '[:find ?e
+                                                                                             :in $ ?name
+                                                                                             :where [?e :author/name ?name]] (dt/db conn) author)))
+                                                          :chat/subject title}]}))
+                  nil)
+                (dom/div
+                  (let [msg (e/server (dt/q '[:find (pull ?m [*])
+                                              :in $ ?title ?author
+                                              :where [?m :chat/subject ?title]
+                                              [?m :chat/to ?author]
+                                              [?m :chat/id _]] (dt/db conn) title (ffirst (dt/q '[:find ?e :in $ ?aut :where [?e :author/name ?aut]]
+                                                                                                (dt/db conn) author)) ))]
+                    (dom/ul
+                      (e/for [content (:chat/messages (ffirst msg))]
+                             (dom/li
+                               (dom/text (:selected-supplier supplier) "->" (e/server (ffirst (dt/q '[:find ?msg
+                                                                                                      :in $ ?id
+                                                                                                      :where [?id :msg/message ?msg]] (dt/db conn) (:db/id content))))))))
+                    )
+                  )
+                (dom/input (dom/props {:placeholder "Type a message" :maxlength 100})
+                           (dom/on "keydown" (e/fn [e]
+                                                   (when (= "Enter" (.-key e))
+                                                     (when-some [v (empty->nil (.substr (.. e -target -value) 0 100))]
+                                                       (apply (.-log js/console) v)
+                                                       (e/server (dt/transact conn {:tx-data [{:msg/id        (next-msg-id (dt/db conn))
+                                                                                               :msg/message   v
+                                                                                               :msg/timestamp (System/currentTimeMillis)}]})
+                                                                 (def msg-db-id (ffirst (dt/q '[:find ?e
+                                                                                                :in $ ?msg
+                                                                                                :where [?e :msg/message ?msg]] (dt/db conn) v)))
+                                                                 (def chat-messages (if (nil? (:chat/messages (first (flatten (dt/q '[:find (pull ?e [*])
+                                                                                                                                      :in $ ?chat-subject
+                                                                                                                                      :where [?e :chat/subject ?chat-subject]
+                                                                                                                                      [?e :chat/project _]] (dt/db conn) title))))
+                                                                                              )
+                                                                                      []
+                                                                                      (into [] (map (fn [v] (:db/id  v)) (into [] (:chat/messages (first (flatten (dt/q '[:find (pull ?e [*])
+                                                                                                                                                                         :in $ ?chat-subject
+                                                                                                                                                                         :where [?e :chat/subject ?chat-subject]
+                                                                                                                                                                         [?e :chat/id _]] (dt/db conn) title)))))))) )
+                                                                 (dt/transact conn {:tx-data [{:db/id         (ffirst (dt/q '[:find ?e
+                                                                                                                       :in $ ?chat-subject
+                                                                                                                       :where [?e :chat/subject ?chat-subject]
+                                                                                                                       [?e :chat/id _]] (dt/db conn) title))
+                                                                                               :chat/messages (vector-appender chat-messages msg-db-id)}]}))
+                                                       (set! (.-value dom/node) ""))))))
 
 
+                (dom/text title " " author))))))
+                ;Mesaj kismi olusturuldu
+                ; Mesajlasma ksimi yazilacak
+                ; chat/messages kisimi disinda caht tarafi dolduruldu
 
-
+#_(dt/q '[:find ?msg
+          :in $ ?title
+          :where [?m :chat/subject ?title]
+          [?m :chat/messages ?msg]] (dt/db conn) title)
 (e/defn Main []
         (e/client
           (dom/h2 (dom/text "Select Your Supplier Company"))
@@ -154,7 +307,8 @@
                    (let [state (e/watch !state-supplier)]
                      (dom/div (dom/text "Nav:")
                               (history/link [::main] (dom/text "Supplier Company Selection")) (dom/text " ")
-                              (history/link [::find-project (:selected-supplier state)] (dom/text "Find Project")) (dom/text " ")))
+                              (history/link [::find-project (:selected-supplier state)] (dom/text "Find Project")) (dom/text " ")
+                              (history/link [::message (:selected-supplier state)] (dom/text "Messages")) (dom/text " ")))
 
 
 
@@ -165,6 +319,8 @@
                      ::project-detail (history/router 2 (e/server (ProjectDetail. x)))
                      ::find-project (history/router 2 (e/server (FindProject. x)))
                      ::send-proposal (history/router 2 (e/server (SendProposal. x)))
+                     ::message (history/router 2 (e/server (MainMessage. x)))
+                     ::chat (history/router 2 (e/server (ChatPage. x)))
                      (e/client (dom/text "no matching route: " (pr-str page)))))))
 
 (def read-edn-str (partial clojure.edn/read-string

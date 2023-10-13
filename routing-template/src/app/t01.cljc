@@ -25,7 +25,7 @@
 
 (e/defn Page [[page x]]
         (e/client
-          (dom/h1 (dom/text "Software Sourcing Platform"))
+          (dom/h1 (dom/text "Routing Template"))
           (dom/link (dom/props {:rel :stylesheet, :href "gridsheet-optional.css"}))
           (dom/div (dom/text "Nav: ")
                    (history/link [::summary] (dom/text "home")) (dom/text " ")

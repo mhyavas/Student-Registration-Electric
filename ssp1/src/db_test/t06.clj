@@ -62,3 +62,32 @@
                                                                                     :in $ ?chat-subject
                                                                                     :where [?e :chat/subject ?chat-subject]
                                                                                     [?e :chat/id _]] (d/db conn) "Trade Automation"))))))
+
+(d/q '[:find ?e :in $ ?title :where [?p :project/title ?title] [?p :project/author ?e]]
+      (d/db conn) "Trade Automation")
+
+(map (fn [v] (:db/id  v)) (into [] (:chat/messages (first (flatten (d/q '[:find (pull ?e [*])
+                                                                          :in $ ?chat-subject ?author
+                                                                          :where [?e :chat/subject ?chat-subject]
+                                                                          [?e :chat/from ?author]] (d/db conn) "Trade Automation" (ffirst (d/q '[:find ?e :in $ ?title :where [?p :project/title ?title] [?p :project/author ?e]] (d/db conn) "Trade Automation"))))))))
+
+(def msg-db-id (ffirst (d/q '[:find ?e
+                              :in $ ?msg
+                              :where [?e :msg/message ?msg]] (d/db conn) "testt")))
+(identity msg-db-id)
+
+(def chat-messages (if (nil? (:chat/messages (first (flatten (d/q '[:find (pull ?e [*])
+                                                                     :in $ ?chat-subject
+                                                                     :where [?e :chat/subject ?chat-subject]
+                                                                     [?e :chat/project _]] (d/db conn) "Trade Automation")))))
+
+                     []
+                     (into [] (map (fn [v] (:db/id  v)) (into [] (:chat/messages (first (flatten (d/q '[:find (pull ?e [*])
+                                                                                                         :in $ ?chat-subject ?author
+                                                                                                         :where [?e :chat/subject ?chat-subject]
+                                              [?e :chat/from ?author]] (d/db conn) "Trade Automation" (ffirst (d/q '[:find ?e :in $ ?title :where [?p :project/title ?title] [?p :project/author ?e]] (d/db conn) "Trade Automation")))))))))))
+(identity chat-messages)
+
+(defn vector-appender [vect value]
+  (conj vect value))
+(vector-appender chat-messages msg-db-id)

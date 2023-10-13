@@ -241,15 +241,41 @@
                                               :where [?m :chat/subject ?title]
                                               [?m :chat/to ?author]
                                               [?m :chat/id _]] (dt/db conn) title (ffirst (dt/q '[:find ?e :in $ ?aut :where [?e :author/name ?aut]]
-                                                                                                (dt/db conn) author)) ))]
+                                                                                                (dt/db conn) author))))
+                        customer-msg (e/server (dt/q '[:find (pull ?m [*])
+                                                       :in $ ?title ?author
+                                                       :where [?m :chat/subject ?title]
+                                                       [?m :chat/from ?author]
+                                                       [?m :chat/id _]] (dt/db conn) title (ffirst (dt/q '[:find ?e :in $ ?aut :where [?e :author/name ?aut]]
+                                                                                                         (dt/db conn) author))))]
                     (dom/ul
                       (e/for [content (:chat/messages (ffirst msg))]
+                             (dom/text content)
                              (dom/li
-                               (dom/text (:selected-supplier supplier) "->" (e/server (ffirst (dt/q '[:find ?msg
-                                                                                                      :in $ ?id
-                                                                                                      :where [?id :msg/message ?msg]] (dt/db conn) (:db/id content))))))))
-                    )
-                  )
+                               (dom/text (:selected-supplier supplier) "->" (e/server (let [m (ffirst (dt/q '[:find (pull ?id [*]) #_?msg
+                                                                                                              :in $ ?id
+                                                                                                              :where [?id :msg/message ?msg]] (dt/db conn) (:db/id content)))]
+                                                                                        (str (:msg/message m) "--" (java.util.Date. (:msg/timestamp m)))))))))
+                    (dom/ul
+                      (e/for [content (:chat/messages (ffirst customer-msg))]
+                             (dom/li
+                               (dom/text (e/server (let [m (ffirst (dt/q '[:find (pull ?id [*]) #_?msg
+                                                                           :in $ ?id
+                                                                           :where [?id :msg/message ?msg]] (dt/db conn) (:db/id content)))]
+                                                     (str (:msg/message m) "--" (java.util.Date. (:msg/timestamp m)))))))))
+                    (dom/ul
+                      (e/for [value (e/server (def formatted-msg (map (fn [m] [{:from (:chat/from m) :to (:chat/to m) :messages (:chat/messages m)}]) (conj (first msg))))
+                                              (def formatted-cust-msg (map (fn [m] [{:from (:chat/from m) :to (:chat/to m) :messages (:chat/messages m)}]) (first customer-msg)))
+                                              (concat formatted-msg formatted-cust-msg))]
+                             ()
+                             (dom/text value)
+                             #_(dom/li
+
+                                  (dom/text (e/server (map (fn [m] (dt/q '[:find (pull ?id [*]) #_?msg
+                                                                           :in $ ?id
+                                                                           :where [?id :msg/message ?msg]] (dt/db conn) (:db/id m))) (:chat/messages value)))))))))
+
+
                 (dom/input (dom/props {:placeholder "Type a message" :maxlength 100})
                            (dom/on "keydown" (e/fn [e]
                                                    (when (= "Enter" (.-key e))
@@ -258,23 +284,25 @@
                                                        (e/server (dt/transact conn {:tx-data [{:msg/id        (next-msg-id (dt/db conn))
                                                                                                :msg/message   v
                                                                                                :msg/timestamp (System/currentTimeMillis)}]})
+                                                                 (delay (println "Testing") 1)
                                                                  (def msg-db-id (ffirst (dt/q '[:find ?e
                                                                                                 :in $ ?msg
                                                                                                 :where [?e :msg/message ?msg]] (dt/db conn) v)))
                                                                  (def chat-messages (if (nil? (:chat/messages (first (flatten (dt/q '[:find (pull ?e [*])
                                                                                                                                       :in $ ?chat-subject
                                                                                                                                       :where [?e :chat/subject ?chat-subject]
-                                                                                                                                      [?e :chat/project _]] (dt/db conn) title))))
-                                                                                              )
+                                                                                                                                      [?e :chat/project _]] (dt/db conn) title)))))
+
                                                                                       []
                                                                                       (into [] (map (fn [v] (:db/id  v)) (into [] (:chat/messages (first (flatten (dt/q '[:find (pull ?e [*])
-                                                                                                                                                                         :in $ ?chat-subject
-                                                                                                                                                                         :where [?e :chat/subject ?chat-subject]
-                                                                                                                                                                         [?e :chat/id _]] (dt/db conn) title)))))))) )
-                                                                 (dt/transact conn {:tx-data [{:db/id         (ffirst (dt/q '[:find ?e
-                                                                                                                       :in $ ?chat-subject
+                                                                                                                                                                          :in $ ?chat-subject
+                                                                                                                                                                          :where [?e :chat/subject ?chat-subject]
+                                                                                                                                                                                 [?e :chat/id _]] (dt/db conn) title)))))))))
+                                                                 (dt/transact conn {:tx-data [{:db/id  (ffirst (dt/q '[:find ?e
+                                                                                                                       :in $ ?chat-subject ?author
                                                                                                                        :where [?e :chat/subject ?chat-subject]
-                                                                                                                       [?e :chat/id _]] (dt/db conn) title))
+                                                                                                                              [?e :chat/to ?author]] (dt/db conn) title (ffirst (dt/q '[:find ?e :in $ ?aut :where [?e :author/name ?aut]]
+                                                                                                                                                                                      (dt/db conn) author))))
                                                                                                :chat/messages (vector-appender chat-messages msg-db-id)}]}))
                                                        (set! (.-value dom/node) ""))))))
 

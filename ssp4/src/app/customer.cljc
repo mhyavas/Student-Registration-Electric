@@ -6,6 +6,7 @@
     [hyperfiddle.history :as history]
     [hyperfiddle.electric-ui4 :as ui4]
     [missionary.core :as m]
+    [contrib.str :refer [empty->nil]]
     clojure.string
     #?(:clj [datomic.client.api :as dt])))
 
@@ -77,6 +78,9 @@
             1
             (inc (ffirst (dt/q '[:find (max ?id)
                                  :where [_ :msg/id ?id]] db))))))
+
+#?(:clj (defn vector-appender [vect value]
+          (conj vect value)))
 
 
 (e/defn CreateAuthor [name]
@@ -234,16 +238,17 @@
             (binding [db (dt/db conn)]
               (e/client
                 (if (empty? (e/server (dt/q '[:find (pull ?e [*])
-                                              :in $ ?title ?customer
+                                              :in $ ?title ?author
                                               :where [?e :chat/subject ?title]
-                                              [?e :chat/from ?customer]] (dt/db conn)
+                                              [?e :chat/from ?author]] (dt/db conn)
                                             title
                                             (e/server
                                               (ffirst
                                                 (dt/q '[:find ?e
-                                                        :in $ ?customer
-                                                        :where [?e :customer/name ?customer]] (dt/db conn)
-                                                      customer))))))
+                                                        :in $ ?title
+                                                        :where [?p :project/title ?title]
+                                                               [?p :project/author ?e]] (dt/db conn)
+                                                      title))))))
                   (e/server (dt/transact conn {:tx-data [{:chat/id      (next-msg-id db)
                                                           :chat/project (e/server (ffirst (dt/q '[:find ?e
                                                                                                   :in $ ?title
@@ -255,16 +260,52 @@
                                                           :chat/to      (e/server (ffirst (dt/q '[:find ?supplier-id
                                                                                                   :in $ ?project-title
                                                                                                   :where [?p :project/title ?project-title]
-                                                                                                  [?p :project/tender_winner ?supplier-id]] db title)))
+                                                                                                  [?p :project/tender_winner ?supplier-id]] (dt/db conn) title)))
                                                           :chat/subject title}]}))
                   nil)
                 (dom/div
                   (let [msg (e/server (dt/q '[:find (pull ?m [*])
-                                              :in $ ?title ;?customer
+                                              :in $ ?title ?author
                                               :where [?m :chat/subject ?title]
-                                              #_[?m :chat/from ?customer]] db title #_(ffirst (dt/q '[:find ?e :in $ ?customer :where [?e :customer/name ?customer]]
-                                                                                                    (dt/db conn) customer))))]
-                    (dom/text msg))))))))
+                                              [?m :chat/from ?author]] (dt/db conn) title (ffirst (dt/q '[:find ?e :in $ ?title :where [?p :project/title ?title] [?p :project/author ?e]] (dt/db conn) title))))]
+                    (dom/ul
+                      (e/for [content (:chat/messages (ffirst msg))]
+                             (dom/li
+                               (dom/text (e/server (ffirst (dt/q '[:find ?msg
+                                                                   :in $ ?id
+                                                                   :where [?id :msg/message ?msg]] (dt/db conn) (:db/id content))))))))
+                    (dom/text msg)))
+                (dom/div
+                  (dom/input (dom/props {:placeholder "Type a message" :maxlength 100})
+                             (dom/on "keydown" (e/fn [e]
+                                                     (when (= "Enter" (.-key e))
+                                                       (when-some [v (empty->nil (.substr (.. e -target -value) 0 100))]
+                                                         (e/server
+                                                           (dt/transact conn {:tx-data [{:msg/id (next-msg-id (dt/db conn))
+                                                                                         :msg/message v
+                                                                                         :msg/timestamp (System/currentTimeMillis)}]})
+                                                           (delay (println "Testing") 1)
+                                                           (def msg-db-id (ffirst (dt/q '[:find ?e
+                                                                                          :in $ ?msg
+                                                                                          :where [?e :msg/message ?msg]] (dt/db conn) v)))
+
+                                                           (def chat-messages (if (nil? (:chat/messages (first (flatten (dt/q '[:find (pull ?e [*])
+                                                                                                                                :in $ ?chat-subject
+                                                                                                                                :where [?e :chat/subject ?chat-subject]
+                                                                                                                                [?e :chat/project _]] (dt/db conn) title)))))
+
+                                                                                []
+                                                                                (into [] (map (fn [v] (:db/id  v)) (into [] (:chat/messages (first (flatten (dt/q '[:find (pull ?e [*])
+                                                                                                                                                                    :in $ ?chat-subject ?author
+                                                                                                                                                                    :where [?e :chat/subject ?chat-subject]
+                                                                                                                                                                           [?e :chat/from ?author]] (dt/db conn) title (ffirst (dt/q '[:find ?e :in $ ?title :where [?p :project/title ?title] [?p :project/author ?e]] (dt/db conn) title)))))))))))
+                                                           (dt/transact conn {:tx-data [{:db/id (ffirst (dt/q '[:find ?e
+                                                                                                                :in $ ?chat-subject ?from
+                                                                                                                :where [?e :chat/subject ?chat-subject]
+                                                                                                                       [?e :chat/from ?from]] (dt/db conn) title (ffirst (dt/q '[:find ?e :in $ ?title :where [?p :project/title ?title] [?p :project/author ?e]]
+                                                                                                                                                                               (dt/db conn) title))))
+                                                                                         :chat/messages (vector-appender chat-messages msg-db-id)}]}))
+                                                         (set! (.-value dom/node) ""))))))))))))
 
 ; todo Yukaridaki hata author yerine :chat/from author yerine customer gonderilmis. Bundan dolayi hata geliyor. Customer yerine author olarak degistir
 (e/defn MainMessage [info]

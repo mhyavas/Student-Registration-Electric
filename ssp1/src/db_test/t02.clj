@@ -118,53 +118,53 @@
                     {:db/ident :author/name
                      :db/valueType :db.type/string
                      :db/cardinality :db.cardinality/one}
-                    {:db/ident :author/customer
+                    {:db/ident :author/company
                      :db/valueType :db.type/ref
                      :db/cardinality :db.cardinality/one}])
 (d/transact conn {:tx-data author-schema})
-(def message-schema [{:db/ident :message/id
-                      :db/valueType :db.type/long
-                      :db/unique :db.unique/identity
-                      :db/cardinality :db.cardinality/one}
-                     {:db/ident :message/project
-                      :db/valueType :db.type/ref
-                      :db/cardinality :db.cardinality/one}
-                     {:db/ident :message/from
-                      :db/valueType :db.type/ref
-                      :db/cardinality :db.cardinality/one}
-                     {:db/ident :message/to
-                      :db/valueType :db.type/ref
-                      :db/cardinality :db.cardinality/one}
-                     {:db/ident :message/timestamp
-                      :db/valueType :db.type/long
-                      :db/cardinality :db.cardinality/one}
-                     {:db/ident :message/message
-                      :db/valueType :db.type/string
-                      :db/cardinality :db.cardinality/one}
-                     {:db/ident :message/subject
-                      :db/valueType :db.type/string
-                      :db/cardinality :db.cardinality/one}])
+#_(def message-schema [{:db/ident :message/id
+                        :db/valueType :db.type/long
+                        :db/unique :db.unique/identity
+                        :db/cardinality :db.cardinality/one}
+                       {:db/ident :message/project
+                        :db/valueType :db.type/ref
+                        :db/cardinality :db.cardinality/one}
+                       {:db/ident :message/from
+                        :db/valueType :db.type/ref
+                        :db/cardinality :db.cardinality/one}
+                       {:db/ident :message/to
+                        :db/valueType :db.type/ref
+                        :db/cardinality :db.cardinality/one}
+                       {:db/ident :message/timestamp
+                        :db/valueType :db.type/long
+                        :db/cardinality :db.cardinality/one}
+                       {:db/ident :message/message
+                        :db/valueType :db.type/string
+                        :db/cardinality :db.cardinality/one}
+                       {:db/ident :message/subject
+                        :db/valueType :db.type/string
+                        :db/cardinality :db.cardinality/one}])
 
 
-(def message-schema2 [{:db/ident :chat/id
-                       :db/valueType :db.type/long
-                       :db/unique :db.unique/identity
-                       :db/cardinality :db.cardinality/one}
-                      {:db/ident :chat/project
-                       :db/valueType :db.type/ref
-                       :db/cardinality :db.cardinality/one}
-                      {:db/ident :chat/from
-                       :db/valueType :db.type/ref
-                       :db/cardinality :db.cardinality/one}
-                      {:db/ident :chat/to
-                       :db/valueType :db.type/ref
-                       :db/cardinality :db.cardinality/one}
-                      {:db/ident :chat/messages
-                       :db/valueType :db.type/ref
-                       :db/cardinality :db.cardinality/many}
-                      {:db/ident :chat/subject
-                       :db/valueType :db.type/string
-                       :db/cardinality :db.cardinality/one}])
+#_(def message-schema2 [{:db/ident :chat/id
+                         :db/valueType :db.type/long
+                         :db/unique :db.unique/identity
+                         :db/cardinality :db.cardinality/one}
+                        {:db/ident :chat/project
+                         :db/valueType :db.type/ref
+                         :db/cardinality :db.cardinality/one}
+                        {:db/ident :chat/from
+                         :db/valueType :db.type/ref
+                         :db/cardinality :db.cardinality/one}
+                        {:db/ident :chat/to
+                         :db/valueType :db.type/ref
+                         :db/cardinality :db.cardinality/one}
+                        {:db/ident :chat/messages
+                         :db/valueType :db.type/ref
+                         :db/cardinality :db.cardinality/many}
+                        {:db/ident :chat/subject
+                         :db/valueType :db.type/string
+                         :db/cardinality :db.cardinality/one}])
 
 (def message-content-schema [{:db/ident :msg/id
                               :db/valueType :db.type/long
@@ -175,12 +175,21 @@
                               :db/cardinality :db.cardinality/one}
                              {:db/ident :msg/timestamp
                               :db/valueType :db.type/long
+                              :db/cardinality :db.cardinality/one}
+                             {:db/ident :msg/title
+                              :db/valueType :db.type/string
+                              :db/cardinality :db.cardinality/one}
+                             {:db/ident :msg/reply_to
+                              :db/valueType :db.type/ref
+                              :db/cardinality :db.cardinality/one}
+                             {:db/ident :msg/author
+                              :db/valueType :db.type/ref
                               :db/cardinality :db.cardinality/one}])
 
-(d/transact conn {:tx-data message-schema2})
+#_(d/transact conn {:tx-data message-schema2})
 
 (d/transact conn {:tx-data message-content-schema})
-(d/transact conn {:tx-data message-schema})
+#_(d/transact conn {:tx-data message-schema})
 (new java.util.Date)
 
 

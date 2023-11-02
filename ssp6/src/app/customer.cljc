@@ -90,14 +90,22 @@
         ((e/server
            (binding [conn @(requiring-resolve 'user/datomic-conn)]
              (e/client
-               (dom/h2 (dom/text "Select Company:"))
-               (dom/div
-                 (dom/table
-                   (dom/th (dom/text "Name"))
-                   (e/for [value (e/server (dt/q '[:find (pull ?e [*])
-                                                   :where [?e :customer/id _]] (dt/db conn)))]
-                          (dom/tr
-                            (dom/td (history/link [:app.main/customer-user-select (:customer/name (first value))] (dom/text (:customer/name (first value))))))))))))))
+               (let [state (e/watch !state-project)]
+                 (if (< 0 (count (:selected-company state)))
+                   (dom/div
+                     (do
+                       (history/navigate! history/!history [:app.main/customer-user-select (:selected-company state)])))
+                   (dom/div
+                     (dom/h2 (dom/text "Select Company:"))
+                     (dom/div
+                       (dom/table
+                         (dom/th (dom/text "Name"))
+                         (e/for [value (e/server (dt/q '[:find (pull ?e [*])
+                                                         :where [?e :customer/id _]] (dt/db conn)))]
+                                (dom/tr
+                                  (dom/td (history/link [:app.main/customer-user-select (:customer/name (first value))] (dom/text (:customer/name (first value))))))))))))
+
+               )))))
 
 (e/defn UserSelect [company]
         (e/server
@@ -106,32 +114,41 @@
               (let [state (e/watch !state-project)]
                 (let [login (:login-credentials state)]
                   (swap! !state-project assoc-in [:selected-company] company)
-                  (dom/h2 (dom/text "User Login:"))
-                  (dom/text (:login-message login))
-                  (dom/div
-                    (dom/span (dom/text "Name:"))
-                    (ui4/input (:user-name login)  (e/fn [v] (set-username! v)))
-                    (dom/span (dom/text "Password:"))
-                    (ui4/input  (:password login) (e/fn [v] (set-password! v)))
-                    (ui4/button (e/fn []
-                                      (e/server
-                                        (if (empty? (dt/q '[:find ?e
-                                                            :in $ ?name
-                                                            :where [?e :author/name ?name]] (dt/db conn) (:user-name login)))
-                                          (e/client (swap! !state-project assoc-in [:login-credentials :login-message] "Wrong username!"))
-                                          (e/client (swap! !state-project assoc-in [:login-credentials :login-message] "")
-                                                    (e/server
-                                                      (if (= (:password login) (ffirst (dt/q '[:find ?password
-                                                                                               :in $ ?user
-                                                                                               :where [?e :password/user ?user]
-                                                                                               [?e :password/password ?password]] (dt/db conn) (ffirst (dt/q '[:find ?e
-                                                                                                                                                               :in $ ?name ?company
-                                                                                                                                                               :where [?e :author/name ?name]
-                                                                                                                                                                      [?e :author/company ?company]] (dt/db conn) (:user-name login) (ffirst (dt/q '[:find ?e :in $ ?company :where [?e :customer/name ?company]] (dt/db conn) company)))))))
-                                                        (e/client
-                                                          (history/navigate! history/!history [:app.main/customer-projects (:selected-company state)])
-                                                          (swap! !state-project assoc-in [:selected-user] (:user-name login)))
-                                                        (e/client (swap! !state-project assoc-in [:login-credentials :login-message] "Wrong password!")))))))) (dom/text "Login")))))))))
+                  (if (< 0 (count (:selected-user state)))
+                    (dom/div
+                      (do (history/navigate! history/!history [:app.main/customer-projects (:selected-company state)])))
+
+                    (dom/div
+                      (dom/h2 (dom/text "User Login:"))
+                      (dom/text (:login-message login))
+                      (dom/div
+                        (dom/span (dom/text "Name:"))
+                        (ui4/input (:user-name login)  (e/fn [v] (set-username! v)))
+                        (dom/span (dom/text "Password:"))
+                        (ui4/input  (:password login) (e/fn [v] (set-password! v)))
+                        (ui4/button (e/fn []
+                                          (e/server
+                                            (if (empty? (dt/q '[:find ?e
+                                                                :in $ ?name
+                                                                :where [?e :author/name ?name]] (dt/db conn) (:user-name login)))
+                                              (e/client (swap! !state-project assoc-in [:login-credentials :login-message] "Wrong username!"))
+                                              (e/client (swap! !state-project assoc-in [:login-credentials :login-message] "")
+                                                        (e/server
+                                                          (if (= (:password login) (ffirst (dt/q '[:find ?password
+                                                                                                   :in $ ?user
+                                                                                                   :where [?e :password/user ?user]
+                                                                                                   [?e :password/password ?password]] (dt/db conn) (ffirst (dt/q '[:find ?e
+                                                                                                                                                                   :in $ ?name ?company
+                                                                                                                                                                   :where [?e :author/name ?name]
+                                                                                                                                                                       [?e :author/company ?company]] (dt/db conn) (:user-name login) (ffirst (dt/q '[:find ?e :in $ ?company :where [?e :customer/name ?company]] (dt/db conn) company)))))))
+                                                            (e/client
+                                                              (history/navigate! history/!history [:app.main/customer-projects (:selected-company state)])
+                                                              (swap! !state-project assoc-in [:selected-user] (:user-name login)))
+                                                            (e/client (swap! !state-project assoc-in [:login-credentials :login-message] "Wrong password!")))))))) (dom/text "Login")))))))))))
+
+
+
+
 
 #?(:clj (defn project-data [db company]
           (vec (map (fn [[id title status]]
@@ -169,7 +186,7 @@
 #?(:clj (defn project-detail-data [db detail-data]
           (into [] (map (fn [m] {:title       (:project/title m)
                                  :status      (:project/status m)
-                                 :create-date (if (and
+                                 :create_date (if (and
                                                     (and
                                                       (= (.getMonth (java.util.Date.)) (.getMonth (java.util.Date. (:project/create_date m))))
                                                       (= (.getYear (java.util.Date.)) (.getYear (java.util.Date. (:project/create_date m)))))
@@ -181,19 +198,20 @@
                                                                                                :in $ ?e
                                                                                                :where [?e :type/name ?name]] db (:db/id mt)))) (:project/types m))))}) [detail-data]))))
 
-(defn project-navigator [v]
-  (history/navigate! history/!history [:app.main/customer-project-detail (.-title v)]))
 
-#?(:cljs (defn project-table [data]
-           [:> DataTable {:onRowClicked (fn [v]
-                                          (project-navigator v))
-                          :columns      [{:name :Title :selector (fn [row] (.-title row))} {:name :Status :selector (fn [row] (.-status row))}]
-                          :data         data}]))
+
+(defn project-table [data]
+  #?(:cljs
+             [:> DataTable {:allowRowEvents true
+                            :onRowClicked   (fn [v] (do (apply (.-log js/console) [(.-title v)])))
+                            :columns        [{:name :Title :selector (fn [row] (.-title row))}
+                                             {:name :Status :selector (fn [row] (.-status row))}]
+                            :data           data}]))
 
 #?(:cljs (defn project-detail-table [data]
            [:> DataTable {:columns [{:name :Title :selector (fn [row] (.-title row))}
                                     {:name :Status :selector (fn [row] (.-status row))}
-                                    {:name :Create_Date :selector (fn [row] (.-create-date row))}
+                                    {:name :Create_Date :selector (fn [row] (.-create_date row))}
                                     {:name :Description :selector (fn [row] (.-description row))}
                                     {:name :Types :selector (fn [row] (str/split (.-types row) #"(?=[A-Z])"))}] :data data}]))
 
@@ -307,9 +325,19 @@
           (binding [conn @(requiring-resolve 'user/datomic-conn)]
             (binding [db (dt/db conn)]
               (e/client
-                (dom/div (dom/text "Nav:")
-                         (history/link [:app.main/customer-create-project name] (dom/text "Create Project")) (dom/text " ")
-                         (history/link [:app.main/customer-create-author name] (dom/text "Create Author")) (dom/text " "))
+                (dom/div (dom/element "style" (dom/text "
+                  ul{list-style-type: none; margin: 0; padding: 0; background-color: gray; overflow: auto; }
+                  li {float: left;}
+                  li a {color: white; padding: 10px 20px; display: inline-block; text-align: center; text-decoration: none;}
+                  .home {background-color: darkred;}
+                  li a:hover {
+                  background-color: #405d27;
+                  legend {font-size: 20px; font-style: italic;} p {margin-bottom: 0}
+                  }
+                  #container {position:absolute;  left: 40%;  top: 50%; margin-left: -50px;  margin-top: -50px; font-style: italic;}"))
+                         (dom/ul
+                           (dom/li (history/link [:app.main/customer-create-project name] (dom/text "Create Project")))
+                           (dom/li (history/link [:app.main/customer-create-author name] (dom/text "Create Author")))))
                 (dom/text (e/server (project-data db name)))
                 (dom/div (with-reagent project-table (clj->js (e/server (project-data db name)))))
 
@@ -357,13 +385,94 @@
                 (dom/div (with-reagent project-detail-table (clj->js (e/server (project-detail-data db name)))))
                 (dom/div
                   (dom/h3 (dom/text "Proposals for this project"))
-                  (dom/div (with-reagent proposal-table (clj->js (e/server (proposal-data db name)))))))))))
+                  (dom/div (with-reagent proposal-table (clj->js (e/server (proposal-data db name))))))
+                (dom/table (dom/props {:border "1px" "solid" "black"})
+                           (dom/th (dom/text "Title"))
+                           (dom/th (dom/text "Status"))
+                           (dom/th (dom/text "Create Date"))
+                           (dom/th (dom/text "Description"))
+                           (dom/th (dom/text "Types"))
+                           (dom/tr
+                             (dom/td (dom/text (:project/title name)))
+                             (dom/td (dom/text (:project/status name)))
+                             (dom/td (dom/text (e/server (if (and
+                                                               (and
+                                                                 (= (.getMonth (java.util.Date.)) (.getMonth (java.util.Date. (:project/create_date name))))
+                                                                 (= (.getYear (java.util.Date.)) (.getYear (java.util.Date. (:project/create_date name)))))
+                                                               (= (.getDate (java.util.Date.)) (.getDate (java.util.Date. (:project/create_date name)))))
+                                                           (.format (java.text.SimpleDateFormat. "HH:mm:ss") (java.util.Date. (:project/create_date name)))
+                                                           (.format (java.text.SimpleDateFormat. "MM/dd/yyyy") (java.util.Date. (:project/create_date name))))) #_(:project/create_date name)))
+                             (dom/td (dom/text (:project/description name)))
+                             (dom/td (history/link [:app.main/custom2 (e/server (flatten (map (fn [m] (flatten (dt/q '[:find ?name
+                                                                                                                       :in $ ?e
+                                                                                                                       :where [?e :type/name ?name]] db (:db/id m)))) (:project/types name))))] (dom/text (e/server (flatten (map (fn [m] (flatten (dt/q '[:find ?name
+                                                                                                                                                                                                                                                                                                              :in $ ?e
+                                                                                                                                                                                                                                                                                                              :where [?e :type/name ?name]] db (:db/id m)))) (:project/types name))))))))))))))
 
 
+
+(e/defn MainMessage []
+        (e/server
+          (binding [conn @(requiring-resolve 'user/datomic-conn)]
+            (binding [db (dt/db conn)]))))
 
 
 (e/defn CustomerPage2 [input]
-        (e/client (dom/text "test2" input)))
+        (e/server
+          (binding [conn @(requiring-resolve 'user/datomic-conn)]
+            (binding [db (dt/db conn)]
+              (e/client
+                (let [project (e/watch !state-project)]
+                  (let [!filter-project (atom ""), filter-project (e/watch !filter-project)]
+                    (dom/span (dom/text "Project search via type: \n"))
+                    (e/for [value (into [] input)]
+                           (dom/label
+                             (dom/input (dom/props {:type  "checkbox"
+                                                    :name  value
+                                                    :value "true"})
+                                        (dom/on "change" (e/fn [v]
+                                                               (if (and (.-checked dom/node) (not (some (partial = (str (.-name dom/node))) (:types project))))
+                                                                 #_(swap! data update :nums conj {:first 1 :second 2})
+                                                                 (swap! !state-project update-in [:types] conj (str (.-name dom/node)))
+                                                                 (if (some (partial = (str (.-name dom/node))) (:types project))
+                                                                   (swap! !state-project update-in [:types] (fn [types] (vec (remove #(= (str (.-name dom/node)) %) types))))
+                                                                   nil))
+                                                               (reset! !filter-project (str (.-name dom/node))))))
+
+
+
+
+
+                             (dom/text value)))
+                    (dom/text filter-project)
+                    (dom/table (dom/props {:border "1px" "solid" "black"})
+                               (dom/th (dom/text "Title"))
+                               (dom/th (dom/text "Status"))
+                               (dom/th (dom/text "Description"))
+                               (dom/th (dom/text "Author"))
+                               (dom/th (dom/text "Company"))
+                               (dom/th (dom/text "Create Date"))
+                               (e/for [value (e/server (dt/q '[:find (pull ?p [*])
+                                                               :in $  [?t]
+                                                               :where [?p :project/types ?t]] db [(ffirst (dt/q '[:find ?e :in $ ?type :where [?e :type/name ?type]] db filter-project))]))]
+                                      (dom/tr
+                                        (dom/td (dom/text (:project/title (first value))))
+                                        (dom/td (dom/text (:project/status (first value))))
+                                        (dom/td (dom/text (:project/description (first value))))
+                                        (dom/td (dom/text (e/server (ffirst (dt/q '[:find ?name
+                                                                                    :in $ ?a
+                                                                                    :where [?a :author/name ?name]] db (:db/id (:project/author (first value))))))))
+                                        (dom/td (dom/text (e/server (ffirst (dt/q '[:find ?company
+                                                                                    :in $ ?c
+                                                                                    :where [?c :customer/name ?company]] db (:db/id (first (:project/customer (first value)))))))))
+                                        (dom/td (dom/text (e/server (if (and
+                                                                          (and
+                                                                            (= (.getMonth (java.util.Date.)) (.getMonth (java.util.Date. (:project/create_date (first value)))))
+                                                                            (= (.getYear (java.util.Date.)) (.getYear (java.util.Date. (:project/create_date (first value))))))
+                                                                          (= (.getDate (java.util.Date.)) (.getDate (java.util.Date. (:project/create_date (first value))))))
+                                                                      (.format (java.text.SimpleDateFormat. "HH:mm:ss") (java.util.Date. (:project/create_date (first value))))
+                                                                      (.format (java.text.SimpleDateFormat. "MM/dd/yyyy") (java.util.Date. (:project/create_date (first value))))))))))))))))))
+
 (e/defn CustomerPage []
         (e/client (dom/text "CustomerPage")
                   (history/link [:app.main/custom2 "input Test"] (dom/text "input page2"))))

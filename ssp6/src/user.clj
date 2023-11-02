@@ -5,7 +5,9 @@
       [nextjournal.clerk :as clerk])) ; Must be ".clj" file, Clojure doesn't auto-load user.cljc
 
 ; lazy load dev stuff - for faster REPL startup and cleaner dev classpath
+(clerk/serve! {:browse? true})
 
+(clerk/serve! {:watch-paths ["src/clerk_sim" "src"]})
 (def datomic-client)
 (def datomic-conn)
 (def start-electric-server! (delay @(requiring-resolve 'app.electric-server-java8-jetty9/start-server!)))

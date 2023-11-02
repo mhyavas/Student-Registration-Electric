@@ -10,6 +10,8 @@
     "slate-react": "^0.97.0",
     "react-awesome-button": "^7.0.5",
     "reactjs-popup": "^2.0.6",
-    "@blueprintjs/core": "^5.5.1"
+    "@blueprintjs/core": "^5.5.1",
+    "react-offcanvas": "^0.4.0",
+    "react-imgix": "^9.8.0"
   }
 }

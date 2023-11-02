@@ -190,7 +190,27 @@
 
 (d/transact conn {:tx-data message-content-schema})
 #_(d/transact conn {:tx-data message-schema})
-(new java.util.Date)
+#_(def new-msg-schema [{:db/ident :msg2/id
+                        :db/valueType :db.type/long
+                        :db/unique :db.unique/identity
+                        :db/cardinality :db.cardinality/one}
+                       {:db/ident :msg2/message
+                        :db/valueType :db.type/string
+                        :db/cardinality :db.cardinality/one}
+                       {:db/ident :msg2/timestamp
+                        :db/valueType :db.type/long
+                        :db/cardinality :db.cardinality/one}
+                       {:db/ident :msg2/title
+                        :db/valueType :db.type/string
+                        :db/cardinality :db.cardinality/one}
+                       {:db/ident :msg2/reply_to
+                        :db/valueType :db.type/ref
+                        :db/cardinality :db.cardinality/one}
+                       {:db/ident :msg2/author
+                        :db/valueType :db.type/ref
+                        :db/cardinality :db.cardinality/one}
+                       {:db/ident :msg2/main
+                        :db/valueType :db.type}])
 
 
 

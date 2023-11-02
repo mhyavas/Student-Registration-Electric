@@ -42,3 +42,16 @@
 
 
 (d/transact conn {:tx-data seha-password})
+
+(d/q '[:find (pull ?e [*])
+       :where [?e supplier/name]])
+(d/q '[:find (pull ?e [*])
+       :in $ ?company
+       :where [?e :author/name _]
+       [?e :author/company ?c]
+       [?c :supplier/name ?company]]
+      db "Sabanci Holding")
+
+(d/transact conn {:tx-data [{:password/id       15
+                             :password/user     101155069755527
+                             :password/password "123456"}]})

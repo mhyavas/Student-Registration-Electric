@@ -125,12 +125,26 @@
         (e/client
           (dom/h1 (dom/text "Software Sourcing Platform"))
           (dom/link (dom/props {:rel :stylesheet, :href "gridsheet-optional.css"}))
-          (dom/div (dom/text "Nav: ")
-                   (history/link [::summary] (dom/text "home")) (dom/text " ")
-                   (history/link [::create-supplier] (dom/text "Create Supplier")) (dom/text " ")
-                   (history/link [::create-customer] (dom/text "Create Customer")) (dom/text " ")
-                   (history/link [::customer-page] (dom/text "Customer Side")) (dom/text " ")
-                   (history/link [::supplier-page] (dom/text "Supplier Side")) (dom/text " ")))
+          (dom/element "style" (dom/text "
+                  ul{list-style-type: none; margin: 0; padding: 0; background-color: orange; overflow: auto; }
+                  li {float: left;}
+                  li a {color: white; padding: 15px 25px; display: inline-block; text-align: center; text-decoration: none;}
+                  .home {background-color: darkred;}
+                  li a:hover {
+                  background-color: #405d27;
+                  legend {font-size: 25px; font-style: italic;} p {margin-bottom: 0}
+                  }
+
+                  tr {vertical-align: inherit; display: table-row}"))
+
+          (dom/div
+            (dom/ul (dom/props {:class "ul"})
+                    (dom/li (dom/props {:float "left"}) (history/link [::summary] (dom/text "home")))
+                    (dom/li (dom/props {:float "left"}) (history/link [::create-supplier] (dom/text "Create Supplier")))
+                    (dom/li (dom/props {:float "left"}) (history/link [::create-customer] (dom/text "Create Customer")))
+                    (dom/li (dom/props {:float "left"}) (history/link [::customer-page] (dom/text "Customer Side")))
+                    (dom/li (dom/props {:float "left"}) (history/link [::supplier-page] (dom/text "Supplier Side"))))))
+
 
 
 
@@ -146,6 +160,12 @@
               ::customer-create-author (history/router 2 (e/server (app.customer/CreateAuthor. x)))
               ::supplier-page (history/router 1 (e/server (app.supplier/CompanySelect.)))
               ::supplier-user-select (history/router 2 (e/server (app.supplier/UserSelect. x)))
+              ::supplier-proposals (history/router 2 (e/server (app.supplier/ProposalPage. x)))
+              ::supplier-create-author (history/router 2 (e/server (app.supplier/CreateAuthor. x)))
+              ::supplier-find-project (history/router 2 (e/server (app.supplier/FindProject. x)))
+              ::supplier-main-message (history/router 1 (e/server (app.supplier/MainMessage.)))
+              ::supplier-profile (history/router 2 (e/server (app.supplier/ProfilePage. x)))
+              ::supplier-chat (history/router 2 (e/server (app.supplier/ChatPage. x)))
               ::custom2 (history/router 2 (e/server (app.customer/CustomerPage2. x)))
               (e/client (dom/text "no matching route: " (pr-str page)))))
 (def read-edn-str (partial clojure.edn/read-string

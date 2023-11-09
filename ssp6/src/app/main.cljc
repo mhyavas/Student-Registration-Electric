@@ -4,6 +4,7 @@
   (:require clojure.edn
             app.customer
             app.supplier
+            app.msg-test
             contrib.ednish
             [hyperfiddle.electric-ui4 :as ui4]
             [hyperfiddle.electric :as e]
@@ -143,7 +144,8 @@
                     (dom/li (dom/props {:float "left"}) (history/link [::create-supplier] (dom/text "Create Supplier")))
                     (dom/li (dom/props {:float "left"}) (history/link [::create-customer] (dom/text "Create Customer")))
                     (dom/li (dom/props {:float "left"}) (history/link [::customer-page] (dom/text "Customer Side")))
-                    (dom/li (dom/props {:float "left"}) (history/link [::supplier-page] (dom/text "Supplier Side"))))))
+                    (dom/li (dom/props {:float "left"}) (history/link [::supplier-page] (dom/text "Supplier Side")))
+                    (dom/li (dom/props {:float "left"}) (history/link [::msg-test] (dom/text "MSG_TEST"))))))
 
 
 
@@ -167,6 +169,7 @@
               ::supplier-profile (history/router 2 (e/server (app.supplier/ProfilePage. x)))
               ::supplier-chat (history/router 2 (e/server (app.supplier/ChatPage. x)))
               ::custom2 (history/router 2 (e/server (app.customer/CustomerPage2. x)))
+              ::msg-test (history/router 2 (e/server (app.msg-test/MessageTest.)))
               (e/client (dom/text "no matching route: " (pr-str page)))))
 (def read-edn-str (partial clojure.edn/read-string
                            {:readers #?(:cljs {'goog.math/Long goog.math.Long/fromString} ; datomic cloud long ids

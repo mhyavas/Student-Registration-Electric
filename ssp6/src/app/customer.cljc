@@ -1,6 +1,7 @@
 (ns app.customer
   #?(:cljs (:require-macros [app.customer :refer [with-reagent]]))
   (:require clojure.edn
+            app.supplier
             contrib.ednish
             [hyperfiddle.electric-ui4 :as ui4]
             #?(:clj [contrib.datomic-contrib :as dx])
@@ -60,7 +61,9 @@
                            :selected-user ""
                            :login-credentials {:user-name "" :password "" :login-message ""}
                            :msg/reply 0
-                           :msg/author ""}))
+                           :msg/author ""
+                           :clicker {:project-detail {:types [] :click false}
+                                     :project {:title "" :click false}}}))
 
 (defn set-username! [name]
   (swap! !state-project assoc-in [:login-credentials :user-name] name))
@@ -103,9 +106,9 @@
                          (e/for [value (e/server (dt/q '[:find (pull ?e [*])
                                                          :where [?e :customer/id _]] (dt/db conn)))]
                                 (dom/tr
-                                  (dom/td (history/link [:app.main/customer-user-select (:customer/name (first value))] (dom/text (:customer/name (first value))))))))))))
+                                  (dom/td (history/link [:app.main/customer-user-select (:customer/name (first value))] (dom/text (:customer/name (first value)))))))))))))))))
 
-               )))))
+
 
 (e/defn UserSelect [company]
         (e/server
@@ -203,13 +206,17 @@
 (defn project-table [data]
   #?(:cljs
              [:> DataTable {:allowRowEvents true
-                            :onRowClicked   (fn [v] (do (apply (.-log js/console) [(.-title v)])))
+                            :onRowClicked   (fn [v] (swap! !state-project assoc-in [:clicker :project :title] (.-title v))
+                                              (swap! !state-project assoc-in [:clicker :project :click] true))
                             :columns        [{:name :Title :selector (fn [row] (.-title row))}
                                              {:name :Status :selector (fn [row] (.-status row))}]
                             :data           data}]))
 
 #?(:cljs (defn project-detail-table [data]
-           [:> DataTable {:columns [{:name :Title :selector (fn [row] (.-title row))}
+           [:> DataTable {:allowRowEvents true
+                          :onRowClicked (fn [v] (swap! !state-project assoc-in [:clicker :project-detail :types] (js->clj (.-types v)))
+                                          (swap! !state-project assoc-in [:clicker :project-detail :click] true))
+                          :columns [{:name :Title :selector (fn [row] (.-title row))}
                                     {:name :Status :selector (fn [row] (.-status row))}
                                     {:name :Create_Date :selector (fn [row] (.-create_date row))}
                                     {:name :Description :selector (fn [row] (.-description row))}
@@ -273,8 +280,9 @@
               (dom/h2 (dom/text "Creating a Project for " name))
               (dom/div
                 (let [state (e/watch !state-project)]
+
                   (let [project (:project state)]
-                    (dom/text project)
+
                     (dom/div
                       (dom/span (dom/text "Title: "))
                       (ui4/input (:title project) (e/fn [v] (set-project-title! v)))
@@ -325,7 +333,12 @@
           (binding [conn @(requiring-resolve 'user/datomic-conn)]
             (binding [db (dt/db conn)]
               (e/client
-                (dom/div (dom/element "style" (dom/text "
+                (let [state (e/watch !state-project)]
+                  (if (:click (:project (:clicker state)))
+                    (history/navigate! history/!history [:app.main/customer-project-detail (e/server (ffirst (dt/q '[:find (pull ?e [*])
+                                                                                                                     :in $ ?title
+                                                                                                                     :where [?e :project/title ?title]] db (:title (:project (:clicker state))))))]))
+                  (dom/div (dom/element "style" (dom/text "
                   ul{list-style-type: none; margin: 0; padding: 0; background-color: gray; overflow: auto; }
                   li {float: left;}
                   li a {color: white; padding: 10px 20px; display: inline-block; text-align: center; text-decoration: none;}
@@ -335,21 +348,21 @@
                   legend {font-size: 20px; font-style: italic;} p {margin-bottom: 0}
                   }
                   #container {position:absolute;  left: 40%;  top: 50%; margin-left: -50px;  margin-top: -50px; font-style: italic;}"))
-                         (dom/ul
-                           (dom/li (history/link [:app.main/customer-create-project name] (dom/text "Create Project")))
-                           (dom/li (history/link [:app.main/customer-create-author name] (dom/text "Create Author")))))
-                (dom/text (e/server (project-data db name)))
-                (dom/div (with-reagent project-table (clj->js (e/server (project-data db name)))))
+                           (dom/ul
+                             (dom/li (history/link [:app.main/customer-create-project name] (dom/text "Create Project")))
+                             (dom/li (history/link [:app.main/customer-create-author name] (dom/text "Create Author")))))
+                  (dom/text (e/server (project-data db name)))
+                  (dom/div (with-reagent project-table (clj->js (e/server (project-data db name)))))
 
-                (dom/table (dom/props {:border "1px" "solid" "black"})
-                           (dom/td (dom/text "Project Name"))
-                           (dom/td (dom/text "Status"))
-                           (e/for [value (e/server (dt/q '[:find (pull ?e [*])
-                                                                 :in $ ?name
-                                                                 :where [?e :project/customer ?name]] db (ffirst (dt/q '[:find ?e :in $ ?name :where [?e :customer/name ?name]] db name))))]
-                                  (dom/tr
-                                          (dom/td (history/link [:app.main/customer-project-detail (first value)] (dom/text (:project/title (first value)))))
-                                          (dom/td (dom/text (:project/status (first value))))))))))))
+                  (dom/table (dom/props {:border "1px" "solid" "black"})
+                             (dom/td (dom/text "Project Name"))
+                             (dom/td (dom/text "Status"))
+                             (e/for [value (e/server (dt/q '[:find (pull ?e [*])
+                                                             :in $ ?name
+                                                             :where [?e :project/customer ?name]] db (ffirst (dt/q '[:find ?e :in $ ?name :where [?e :customer/name ?name]] db name))))]
+                                    (dom/tr
+                                      (dom/td (history/link [:app.main/customer-project-detail (first value)] (dom/text (:project/title (first value)))))
+                                      (dom/td (dom/text (:project/status (first value)))))))))))))
 
 (e/defn CreateAuthor [name]
         (e/server
@@ -382,32 +395,17 @@
           (binding [conn @(requiring-resolve 'user/datomic-conn)]
             (binding [db (dt/db conn)]
               (e/client
-                (dom/div (with-reagent project-detail-table (clj->js (e/server (project-detail-data db name)))))
-                (dom/div
-                  (dom/h3 (dom/text "Proposals for this project"))
-                  (dom/div (with-reagent proposal-table (clj->js (e/server (proposal-data db name))))))
-                (dom/table (dom/props {:border "1px" "solid" "black"})
-                           (dom/th (dom/text "Title"))
-                           (dom/th (dom/text "Status"))
-                           (dom/th (dom/text "Create Date"))
-                           (dom/th (dom/text "Description"))
-                           (dom/th (dom/text "Types"))
-                           (dom/tr
-                             (dom/td (dom/text (:project/title name)))
-                             (dom/td (dom/text (:project/status name)))
-                             (dom/td (dom/text (e/server (if (and
-                                                               (and
-                                                                 (= (.getMonth (java.util.Date.)) (.getMonth (java.util.Date. (:project/create_date name))))
-                                                                 (= (.getYear (java.util.Date.)) (.getYear (java.util.Date. (:project/create_date name)))))
-                                                               (= (.getDate (java.util.Date.)) (.getDate (java.util.Date. (:project/create_date name)))))
-                                                           (.format (java.text.SimpleDateFormat. "HH:mm:ss") (java.util.Date. (:project/create_date name)))
-                                                           (.format (java.text.SimpleDateFormat. "MM/dd/yyyy") (java.util.Date. (:project/create_date name))))) #_(:project/create_date name)))
-                             (dom/td (dom/text (:project/description name)))
-                             (dom/td (history/link [:app.main/custom2 (e/server (flatten (map (fn [m] (flatten (dt/q '[:find ?name
-                                                                                                                       :in $ ?e
-                                                                                                                       :where [?e :type/name ?name]] db (:db/id m)))) (:project/types name))))] (dom/text (e/server (flatten (map (fn [m] (flatten (dt/q '[:find ?name
-                                                                                                                                                                                                                                                                                                              :in $ ?e
-                                                                                                                                                                                                                                                                                                              :where [?e :type/name ?name]] db (:db/id m)))) (:project/types name))))))))))))))
+                (let [state (e/watch !state-project)]
+                  (dom/text (:clicker state))
+                  (swap! !state-project assoc-in [:clicker :project :click] false)
+                  (if (:click (:project-detail (:clicker state)))
+                    (history/navigate! history/!history [:app.main/custom2 (:types (:project-detail (:clicker state)))]))
+                  (swap! app.supplier/!state-supplier assoc-in [:clicker :proposal :click] false)
+                  (dom/div (with-reagent project-detail-table (clj->js (e/server (project-detail-data db name)))))
+                  (dom/div
+                    (dom/h3 (dom/text "Proposals for this project"))
+                    (dom/div (with-reagent proposal-table (clj->js (e/server (proposal-data db name))))))))))))
+
 
 
 
@@ -423,6 +421,7 @@
             (binding [db (dt/db conn)]
               (e/client
                 (let [project (e/watch !state-project)]
+                  (swap! !state-project assoc-in [:clicker :project-detail :click] false)
                   (let [!filter-project (atom ""), filter-project (e/watch !filter-project)]
                     (dom/span (dom/text "Project search via type: \n"))
                     (e/for [value (into [] input)]

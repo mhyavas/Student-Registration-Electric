@@ -12,7 +12,6 @@
             [hyperfiddle.history :as history]
             [missionary.core :as m]
             #?(:clj [datomic.client.api :as dt])
-            #?(:clj [datomic.client.api :as dt])
             #?(:cljs ["react" :as react])
             #?(:cljs ["slate" :refer [createEditor]])
             #?(:cljs ["slate-react" :refer [Slate Editable withReact]])
@@ -41,7 +40,9 @@
                             :selected-user ""
                             :login-credentials {:user-name "" :password "" :login-message ""}
                             :msg/reply 0
-                            :msg/author ""}))
+                            :msg/author ""
+                            :clicker {:proposal {:title "" :click false}
+                                      :img {:name "" :click false}}}))
 
 (defn set-supplier [name]
   (swap! !state-supplier assoc-in [:selected-supplier] name))
@@ -153,11 +154,15 @@
 
 
 #?(:cljs (defn proposal-table [data]
-           [:> DataTable {:columns [{:name :Title :selector (fn [row] (.-title row))}
+           [:> DataTable {:allowRowEvents true
+                          :onRowClicked   (fn [v] (swap! !state-supplier assoc-in [:clicker :proposal :title] (.-title v))
+                                            (swap! !state-supplier assoc-in [:clicker :proposal :click] true))
+                          :columns [{:name :Title :selector (fn [row] (.-title row))}
                                     {:name :Price :selector (fn [row] (.-price row))}
-                                    {:name :Date :selector (fn [row] (.-timestamp row))}] :data data}]))
+                                    {:name :Date :selector (fn [row] (.-timestamp row))}
+                                    {:name :Customer :selector (fn [row] (.-customer row))}] :data data}]))
 #?(:clj (defn proposal-data [db company]
-          (vec (map (fn [[id title price timestamp]]
+          (vec (map (fn [[id title price timestamp customer]]
                       {:id      id
                        :title   title
                        :price price
@@ -167,10 +172,11 @@
                                           (= (.getYear (java.util.Date.)) (.getYear (java.util.Date. timestamp))))
                                         (= (.getDate (java.util.Date.)) (.getDate (java.util.Date. timestamp))))
                                     (.format (java.text.SimpleDateFormat. "HH:mm:ss") (java.util.Date. timestamp))
-                                    (.format (java.text.SimpleDateFormat. "MM/dd/yyyy") (java.util.Date. timestamp)))})
+                                    (.format (java.text.SimpleDateFormat. "MM/dd/yyyy") (java.util.Date. timestamp)))
+                       :customer customer})
                     (vec (->>
                            (dt/q
-                             '[:find ?id ?title ?price ?timestamp
+                             '[:find ?id ?title ?price ?timestamp ?customer
                                :in $ ?company
                                :where
                                [?e :supplier/name ?company]
@@ -179,7 +185,9 @@
                                [?p :proposal/project ?pro]
                                [?pro :project/title ?title]
                                [?p :proposal/timestamp ?timestamp]
-                               [?p :proposal/price ?price]]
+                               [?p :proposal/price ?price]
+                               [?pro :project/customer ?c]
+                               [?c :customer/name ?customer]]
                              db company)))))))
 
 
@@ -189,6 +197,10 @@
             (binding [db (dt/db conn)]
               (e/client
                 (let [state (e/watch !state-supplier)]
+                  (if (:click (:proposal (:clicker state)))
+                    (history/navigate! history/!history [:app.main/customer-project-detail (e/server (ffirst (dt/q '[:find (pull ?e [*])
+                                                                                                                     :in $ ?title
+                                                                                                                     :where [?e :project/title ?title]] db (:title (:proposal (:clicker state))))))]))
                   (dom/element "style" (dom/text "
                   ul{list-style-type: none; margin: 0; padding: 0; background-color: gray; overflow: auto; }
                   li {float: left;}
@@ -202,44 +214,15 @@
                   (dom/div (dom/ul
                              (dom/li (history/link [:app.main/supplier-create-author name] (dom/text "Create Author")))
                              (dom/li (history/link [:app.main/supplier-find-project name] (dom/text "Find Project")))
-                             (dom/li (history/link [:app.main/supplier-main-message] (dom/text "Messages"))))))
+                             (dom/li (history/link [:app.main/supplier-main-message] (dom/text "Messages")))))
+                  (dom/div
 
-                (dom/div
-                  (dom/h3 (dom/text "Proposals"))
-                  (with-reagent proposal-table (clj->js (e/server (proposal-data db name)))))
-                (dom/div
-                  (dom/table (dom/props {:border "1px" "solid" "black"})
-                             (dom/th (dom/text "Project Title"))
-                             (dom/th (dom/text "Status"))
-                             (dom/th (dom/text "Date"))
-                             (dom/th (dom/text "Customer"))
-                             (e/for [value (e/server (dt/q '[:find (pull ?p [*])
-                                                             :in $ ?supplier-name
-                                                             :where [?s :supplier/name ?supplier-name]
-                                                             [?p :proposal/supplier ?s]] db name))]
-                                    (dom/tr
+                    (dom/h3 (dom/text "Proposals"))
+                    (with-reagent proposal-table (clj->js (e/server (proposal-data db name)))))))))))
 
-                                      (dom/td (history/link [:app.main/customer-project-detail (e/server (ffirst (dt/q '[:find (pull ?e [*])
-                                                                                                                          :in $ ?e
-                                                                                                                          :where [?e :project/title _]] db (:db/id (:proposal/project (first value))))))] (dom/text (e/server (ffirst (dt/q '[:find ?title
-                                                                                                                                                                                                                                              :in $ ?e
-                                                                                                                                                                                                                                              :where [?e :project/title ?title]] db (:db/id (:proposal/project (first value)))))))))
-                                      (dom/td (dom/text (e/server (ffirst (dt/q '[:find ?status
-                                                                                  :in $ ?e
-                                                                                  :where [?e :project/status ?status]] db (:db/id (:proposal/project (first value))))))))
-                                      (dom/td (dom/text (e/server (if (and
-                                                                        (and
-                                                                          (= (.getMonth (java.util.Date.)) (.getMonth (java.util.Date. (:proposal/timestamp (first value)))))
-                                                                          (= (.getYear (java.util.Date.)) (.getYear (java.util.Date. (:proposal/timestamp (first value))))))
-                                                                        (= (.getDate (java.util.Date.)) (.getDate (java.util.Date. (:proposal/timestamp (first value))))))
-                                                                    (.format (java.text.SimpleDateFormat. "HH:mm:ss") (java.util.Date. (:proposal/timestamp (first value))))
-                                                                    (.format (java.text.SimpleDateFormat. "MM/dd/yyyy") (java.util.Date. (:proposal/timestamp (first value))))))))
 
-                                      (dom/td (dom/text (e/server (ffirst (dt/q '[:find ?customer
-                                                                                  :in $ ?customer-id
-                                                                                  :where [?customer-id :customer/name ?customer]] db (ffirst (dt/q '[:find ?status
-                                                                                                                                                     :in $ ?e
-                                                                                                                                                     :where [?e :project/customer ?status]] db (:db/id (:proposal/project (first value)))))))))))))))))))
+
+
 
 
 (e/defn CreateAuthor [name]
@@ -329,13 +312,16 @@
 
 #?(:cljs (defn IMG [url user]
            [:div {:style {:float "right"}}
-            [:img {:onClick (fn [] (apply (.-log js/console) "test")
-                              #_(clj->js (do (history/navigate!. history/!history [:app.main/supplier-profile user])))) :src url :width 50 :style {:border-radius "50%"}}]
+            [:img {:onClick (fn [] (swap! !state-supplier assoc-in [:clicker :img :click] true)
+                                   (swap! !state-supplier assoc-in [:clicker :img :name] user))
+                   :src url :width 50 :style {:border-radius "50%"}}]
             [:p {:style {:font-size "15px"}}  user]]))
 
 (e/defn ProfilePage [author]
         (e/client
+          (swap! !state-supplier assoc-in [:clicker :img :click] false)
           (dom/text author)))
+
 (e/defn MainMessage []
         (e/server
           (binding [conn @(requiring-resolve 'user/datomic-conn)]
@@ -376,6 +362,7 @@
                     (e/for [msg (reverse (e/server (dt/q '[:find (pull ?e [*])
                                                            :in $ ?title
                                                            :where [?e :msg/title ?title]
+                                                           [?e :msg/timestamp ?timestamp]
                                                            (not [?e :msg/reply_to _])] db title)))]
                            (dom/tr
                              (dom/text (e/server (ffirst (dt/q '[:find ?name :in $ ?id :where [?id :author/name ?name]] db (:db/id (:msg/author (first msg)))))) "-->" (:msg/message (first msg)) "--" (:msg/timestamp (first msg)))
@@ -386,7 +373,9 @@
                                                (dom/tr
                                                  (dom/text (e/server (ffirst (dt/q '[:find ?name :in $ ?id :where [?id :author/name ?name]] db (:db/id (:msg/author (first rply)))))) "-->" (:msg/message (first rply) ) "--" (:msg/timestamp (first rply)))
                                                  (ui4/button (e/fn []
-                                                                   (swap! !state-supplier assoc-in [:msg/reply] (:db/id (first msg)))) (dom/text "Reply")))))))))
+                                                                   (swap! !state-supplier assoc-in [:msg/reply] (:db/id (first rply)))) (dom/text "Reply"))
+                                                 #_(if (nil? (:msg/reply_to ()))))))))))
+
                   (dom/div
                     (dom/input (dom/props {:placeholder "Type a message" :maxlength 100})
                                (dom/on "keydown" (e/fn [e]

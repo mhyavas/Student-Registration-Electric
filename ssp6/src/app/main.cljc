@@ -5,6 +5,7 @@
             app.customer
             app.supplier
             app.msg-test
+            app.admin
             contrib.ednish
             [hyperfiddle.electric-ui4 :as ui4]
             [hyperfiddle.electric :as e]
@@ -141,10 +142,9 @@
           (dom/div
             (dom/ul (dom/props {:class "ul"})
                     (dom/li (dom/props {:float "left"}) (history/link [::summary] (dom/text "home")))
-                    (dom/li (dom/props {:float "left"}) (history/link [::create-supplier] (dom/text "Create Supplier")))
-                    (dom/li (dom/props {:float "left"}) (history/link [::create-customer] (dom/text "Create Customer")))
                     (dom/li (dom/props {:float "left"}) (history/link [::customer-page] (dom/text "Customer Side")))
                     (dom/li (dom/props {:float "left"}) (history/link [::supplier-page] (dom/text "Supplier Side")))
+                    (dom/li (dom/props {:float "left"}) (history/link [::admin] (dom/text "Admin")))
                     (dom/li (dom/props {:float "left"}) (history/link [::msg-test] (dom/text "MSG_TEST"))))))
 
 
@@ -168,8 +168,10 @@
               ::supplier-main-message (history/router 1 (e/server (app.supplier/MainMessage.)))
               ::supplier-profile (history/router 2 (e/server (app.supplier/ProfilePage. x)))
               ::supplier-chat (history/router 2 (e/server (app.supplier/ChatPage. x)))
+              ::supplier-admin-edit (history/router 2 (e/server (app.supplier/EditUser. x)))
               ::custom2 (history/router 2 (e/server (app.customer/CustomerPage2. x)))
               ::msg-test (history/router 2 (e/server (app.msg-test/MessageTest.)))
+              ::supplier-admin (history/router 2 (e/server (app.supplier/AdminPage. x)))
               (e/client (dom/text "no matching route: " (pr-str page)))))
 (def read-edn-str (partial clojure.edn/read-string
                            {:readers #?(:cljs {'goog.math/Long goog.math.Long/fromString} ; datomic cloud long ids

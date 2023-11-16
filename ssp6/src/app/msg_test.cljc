@@ -35,6 +35,6 @@
                                                                         :in $ ?title
                                                                         :where [?e :msg/title ?title]
                                                                         [?e :msg/timestamp ?timestamp]] db "test3")))]
-                      (dom/text (:msg/message (ffirst msg)) "--" (:msg/timestamp (ffirst msg)))))))))
+                       (dom/tr (dom/text msg) #_(dom/text (:msg/message (first msg)) "--" (:msg/timestamp (first msg))))))))))
 
 

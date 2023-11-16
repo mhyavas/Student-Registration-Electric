@@ -21,6 +21,8 @@
             #?(:cljs ["react-dom/client" :as ReactDom])
             #?(:cljs ["react-data-table-component$default" :as DataTable])
             #?(:cljs ["react-offcanvas$default" :as offcanvas])
+            #?(:cljs ["reactive-button" :as ReactiveButton])
+            #?(:cljs ["@yaireo/ui-switch" :as Switch])
             [clojure.string :as str]))
 
 
@@ -38,11 +40,17 @@
                                      :password ""}
                             :selected-company ""
                             :selected-user ""
+                            :admin false
                             :login-credentials {:user-name "" :password "" :login-message ""}
                             :msg/reply 0
                             :msg/author ""
                             :clicker {:proposal {:title "" :click false}
-                                      :img {:name "" :click false}}}))
+                                      :img {:name "" :click false}}
+                            :admin-user-selection []
+                            :buttons {:delete false
+                                      :edit false
+                                      :create false
+                                      :message ""}}))
 
 (defn set-supplier [name]
   (swap! !state-supplier assoc-in [:selected-supplier] name))
@@ -109,10 +117,6 @@
 
 
 
-
-
-
-
 (e/defn UserSelect [company]
         (e/server
           (binding [conn @(requiring-resolve 'user/datomic-conn)]
@@ -147,6 +151,12 @@
                                                                                                                                                                    :where [?e :author/name ?name]
                                                                                                                                                                    [?e :author/company ?company]] (dt/db conn) (:user-name login) (ffirst (dt/q '[:find ?e :in $ ?company :where [?e :supplier/name ?company]] (dt/db conn) company)))))))
                                                             (e/client
+                                                              (e/server
+                                                                (if (ffirst (dt/q '[:find ?admin
+                                                                                    :in $ ?user
+                                                                                    :where [?e :author/name ?user]
+                                                                                           [?e :author/admin ?admin]] (dt/db conn) (:user-name login)))
+                                                                  (e/client (swap! !state-supplier assoc-in [:admin] true))))
                                                               (history/navigate! history/!history [:app.main/supplier-proposals (:selected-company state)])
                                                               (swap! !state-supplier assoc-in [:selected-user] (:user-name login)))
                                                             (e/client (swap! !state-supplier assoc-in [:login-credentials :login-message] "Wrong password!")))))))) (dom/text "Login")))))))))))
@@ -211,15 +221,131 @@
                   legend {font-size: 20px; font-style: italic;} p {margin-bottom: 0}
                   }
                   #container {position:absolute;  left: 40%;  top: 50%; margin-left: -50px;  margin-top: -50px; font-style: italic;}"))
-                  (dom/div (dom/ul
-                             (dom/li (history/link [:app.main/supplier-create-author name] (dom/text "Create Author")))
-                             (dom/li (history/link [:app.main/supplier-find-project name] (dom/text "Find Project")))
-                             (dom/li (history/link [:app.main/supplier-main-message] (dom/text "Messages")))))
+                  (dom/div
+                    (if (:admin state)
+                      (dom/ul
+                        (dom/li (history/link [:app.main/supplier-admin (:selected-company state)] (dom/text "Admin")))
+                        (dom/li (history/link [:app.main/supplier-create-author name] (dom/text "Create Author")))
+                        (dom/li (history/link [:app.main/supplier-find-project name] (dom/text "Find Project")))
+                        (dom/li (history/link [:app.main/supplier-main-message] (dom/text "Messages"))))
+                      (dom/ul
+                        (dom/li (history/link [:app.main/supplier-find-project name] (dom/text "Find Project")))
+                        (dom/li (history/link [:app.main/supplier-main-message] (dom/text "Messages"))))))
+
                   (dom/div
 
                     (dom/h3 (dom/text "Proposals"))
                     (with-reagent proposal-table (clj->js (e/server (proposal-data db name)))))))))))
 
+#?(:clj (defn admin-user-data [db company]
+          (vec (map (fn [[id user password admin]]
+                      {:id      id
+                       :user user
+                       :password password
+                       :admin admin})
+                    (vec (->>
+                           (dt/q
+                             '[:find ?id ?user ?password ?admin
+                               :in $ ?company
+                               :where
+                               [?e :supplier/name ?company]
+                               [?u :author/company ?e]
+                               [?u :author/id ?id]
+                               [?u :author/id ?id]
+                               [?u :author/name ?user]
+                               [?u :author/admin ?admin]
+                               [?p :password/user ?u]
+                               [?p :password/password ?password]]
+                             db company)))))))
+
+#?(:cljs (defn admin-user-table [data]
+           [:> DataTable {:allowRowEvents       true
+                          :selectableRows       true
+                          :onSelectedRowsChange (fn [v] (swap! !state-supplier assoc-in [:admin-user-selection] (js->clj (.-selectedRows v))))
+                          :columns              [{:name :User :sortable true :selector (fn [row] (.-user row))}
+                                                 {:name :Password :selector  (fn [row] (.-password row))}
+                                                 {:name :Admin :sortable true :selector (fn [row] (str (.-admin row)))}]
+                          :data                 data}]))
+#?(:cljs (defn reactive-btn [action]
+           (case action
+             "Delete" [:> ReactiveButton {:color "red" :idleText "Delete" :onClick (fn [] (swap! !state-supplier assoc-in [:buttons :delete] true))}]
+             "Edit"   [:> ReactiveButton {:color "yellow" :idleText "Edit" :onClick (fn [] (swap! !state-supplier assoc-in [:buttons :edit] true))}]
+             "Create" [:> ReactiveButton {:color "green" :idleText "Create" :onClick (fn [] (swap! !state-supplier assoc-in [:buttons :create] true))}])))
+
+
+(e/defn EditUser [[m company]]
+        (e/server
+          (binding [conn @(requiring-resolve 'user/datomic-conn)]
+            (e/client
+              (swap! !state-supplier assoc-in [:buttons :edit] false)
+              (let [edit-state (atom {:user-name "" :password "" :admin false})]
+                (let [edit (e/watch edit-state)]
+                  (swap! edit-state assoc-in [:admin] (:admin (clojure.walk/keywordize-keys (first m))))
+                  (swap! edit-state assoc-in [:user-name] (:user (clojure.walk/keywordize-keys (first m))))
+                  (swap! edit-state assoc-in [:password] (:password (clojure.walk/keywordize-keys (first m))))
+                  (dom/div
+                    (dom/span (dom/text "User: "))
+                    (dom/input (dom/props {:placeholder (:user (clojure.walk/keywordize-keys (first m)))})
+                               (dom/on "change" (e/fn [v] (swap! edit-state assoc-in [:user-name] (.-value dom/node))))))
+                  (dom/div
+                    (dom/span (dom/text "Password: "))
+                    (dom/input (dom/props {:placeholder (:password (clojure.walk/keywordize-keys (first m)))})
+                               (dom/on "change" (e/fn [v] (swap! edit-state assoc-in [:password] (.-value dom/node))))))
+                  (dom/text edit)
+                  (dom/label
+                    (dom/text "Admin: ")
+                    (dom/input (dom/props {:type  "checkbox"
+                                           :name  "admin"
+                                           :value (:admin (clojure.walk/keywordize-keys (first m)))
+                                           :checked (:admin (clojure.walk/keywordize-keys (first m)))})
+                               (dom/on "change" (e/fn [v]
+                                                      (if (.-checked dom/node)
+                                                        (swap! edit-state assoc-in [:admin] true)
+                                                        (swap! edit-state assoc-in [:admin] false)))))
+                    (dom/text (first value)))
+                  (ui4/button (e/fn []
+                                    (e/server
+                                      (dt/transact conn {:tx-data [{:db/id             (ffirst (dt/q '[:find ?e :in $ ?name :where [?u :author/name ?name]
+                                                                                                       [?e :password/user ?u]] (dt/db conn) (:user (clojure.walk/keywordize-keys (first m)))))
+                                                                    :password/password (:password edit)}]})
+                                      (dt/transact conn {:tx-data [{:db/id          (ffirst (dt/q '[:find ?e :in $ ?name :where [?e :author/name ?name]] (dt/db conn) (:user (clojure.walk/keywordize-keys (first m)))))
+                                                                    :author/name    (:user-name edit)
+                                                                    :author/admin (:admin edit)}]}))
+                                    (do (history/navigate! history/!history [:app.main/supplier-admin company])))
+
+
+
+
+                              (dom/text "Edit"))))
+
+
+              (dom/text m)))))
+(e/defn AdminPage [company]
+        (e/server
+          (binding [conn @(requiring-resolve 'user/datomic-conn)]
+            (binding [db (dt/db conn)]
+              (e/client
+                (let [state (e/watch !state-supplier)]
+                  (if (and (empty? (:admin-user-selection state)) (or (:delete (:buttons state)) (:edit (:buttons state))))
+                    (swap! !state-supplier assoc-in [:buttons :message] "Please Select User")
+                    (do
+                      (swap! !state-supplier assoc-in [:buttons :message] "")
+                      (if (:edit (:buttons state))
+                        (history/navigate! history/!history [:app.main/supplier-admin-edit [(:admin-user-selection state) company]]))))
+                  (if (:create (:buttons state))
+                    (history/navigate! history/!history [:app.main/supplier-create-author company]))
+
+
+                  (dom/text (:message (:buttons state)))
+                  (dom/h3 (dom/text "Total registered user: " (e/server (ffirst (dt/q '[:find (count ?e)
+                                                                                        :in $ ?company
+                                                                                        :where [?c :supplier/name ?company]
+                                                                                        [?e :author/company ?c]] db company)))))
+                  (with-reagent admin-user-table (clj->js (e/server (admin-user-data db company))))
+                  (dom/ul (dom/props {:background-color "white"})
+                    (dom/li (with-reagent reactive-btn "Delete"))
+                    (dom/li (with-reagent reactive-btn "Edit"))
+                    (dom/li (with-reagent reactive-btn "Create")))))))))
 
 
 
@@ -232,6 +358,7 @@
               (dom/div
                 (let [state (e/watch !state-supplier)]
                   (let [auth (:author state)]
+                    (swap! !state-supplier assoc-in [:buttons :create] false)
                     (dom/div
                       (dom/span (dom/text "Author Name:"))
                       (ui4/input (:name auth) (e/fn [v] (set-author-name! v)))
@@ -242,6 +369,7 @@
                       (ui4/button (e/fn []
                                         (e/server (dt/transact conn {:tx-data [{:author/id      (next-author-id (dt/db conn))
                                                                                 :author/name    (:name auth)
+                                                                                :author/admin false
                                                                                 :author/company (ffirst (dt/q '[:find ?e :in $ ?name :where [?e :supplier/name ?name]] (dt/db conn) name))}]})
                                                   (dt/transact conn {:tx-data [{:password/id       (next-password-id (dt/db conn))
                                                                                 :password/user     (ffirst (dt/q '[:find ?e :in $ ?name :where [?e :author/name ?name]] (dt/db conn) (:name auth)))

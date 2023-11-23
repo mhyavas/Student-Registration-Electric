@@ -2,6 +2,7 @@
   #?(:cljs (:require-macros [app.customer :refer [with-reagent]]))
   (:require clojure.edn
             app.supplier
+            app.admin
             contrib.ednish
             [hyperfiddle.electric-ui4 :as ui4]
             #?(:clj [contrib.datomic-contrib :as dx])
@@ -12,7 +13,6 @@
             [hyperfiddle.electric-dom2 :as dom]
             [hyperfiddle.history :as history]
             [missionary.core :as m]
-            #?(:clj [datomic.client.api :as dt])
             #?(:clj [datomic.client.api :as dt])
             #?(:cljs ["react" :as react])
             #?(:cljs ["slate" :refer [createEditor]])
@@ -63,7 +63,13 @@
                            :msg/reply 0
                            :msg/author ""
                            :clicker {:project-detail {:types [] :click false}
-                                     :project {:title "" :click false}}}))
+                                     :project {:title "" :click false}}
+                           :admin-user-selection []
+                           :buttons {:delete false
+                                     :edit false
+                                     :create false
+                                     :message ""}}))
+
 
 (defn set-username! [name]
   (swap! !state-project assoc-in [:login-credentials :user-name] name))
@@ -475,3 +481,35 @@
 (e/defn CustomerPage []
         (e/client (dom/text "CustomerPage")
                   (history/link [:app.main/custom2 "input Test"] (dom/text "input page2"))))
+
+
+#?(:cljs (defn reactive-btn [action]
+           (case action
+             "Delete" [:> ReactiveButton {:color "red" :idleText "Delete" :onClick (fn [] (swap! !state-project assoc-in [:buttons :delete] true))}]
+             "Edit"   [:> ReactiveButton {:color "yellow" :idleText "Edit" :onClick (fn [] (swap! !state-project assoc-in [:buttons :edit] true))}]
+             "Create" [:> ReactiveButton {:color "green" :idleText "Create" :onClick (fn [] (swap! !state-project assoc-in [:buttons :create] true))}])))
+(e/defn EditUser [[m company]]
+  (e/client
+    (dom/text "Customer Edit User")))
+(e/defn AdminPage [company]
+  (e/server
+    (binding [conn @(requiring-resolve 'user/datomic-conn)]
+      (binding [db (dt/db conn)]
+        (e/client
+          (let [state (e/watch !state-project)]
+            (swap! app.admin/!admin-state assoc-in [:table-clickers :customer :click] false)
+            (if (and (empty? (:admin-user-selection state)) (or (:delete (:buttons state)) (:edit (:buttons state))))
+               (swap! !state-project assoc-in [:buttons :message] "Please Select User")
+               (do
+                 (swap! !state-project assoc-in [:buttons :message] "")
+                 (if (:edit (:buttons state))
+                   (history/navigate! history/!history [:app.main/customer-admin-edit [(:admin-user-selection state) company]]))))
+
+            (if (:create (:buttons state))
+              (history/navigate! history/!history [:app.main/customer-create-author company]))
+
+            (dom/text (:message (:buttons state)))
+            (dom/h3 (dom/text "Total registered user: " (e/server (ffirst (dt/q '[:find (count ?e)
+                                                                                  :in $ ?company
+                                                                                  :where [?c :customer/name ?company]
+                                                                                  [?e :author/company ?c]] db company)))))))))))

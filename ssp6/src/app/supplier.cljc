@@ -1,6 +1,7 @@
 (ns app.supplier
   #?(:cljs (:require-macros [app.customer :refer [with-reagent]]))
   (:require clojure.edn
+            app.admin
             contrib.ednish
             [hyperfiddle.electric-ui4 :as ui4]
             #?(:clj [contrib.datomic-contrib :as dx])
@@ -25,6 +26,8 @@
             #?(:cljs ["@yaireo/ui-switch" :as Switch])
             [clojure.string :as str]))
 
+
+;todo Delete user icin datomic schemasi degisecek. Yeni bir entity tyoe eklencek. Aktif kullanici olup olmadigi kontorl edilecek.
 
 (e/def conn)
 (e/def db)
@@ -320,12 +323,25 @@
 
 
               (dom/text m)))))
+#?(:cljs (defn proposal-table-edit [data]
+           [:> DataTable {:allowRowEvents true
+                          :selectableRows true
+                          :onRowClicked   (fn [v] (swap! !state-supplier assoc-in [:clicker :proposal :title] (.-title v))
+                                            (swap! !state-supplier assoc-in [:clicker :proposal :click] true))
+                          :columns [{:name :Title :selector (fn [row] (.-title row))}
+                                    {:name :Price :selector (fn [row] (.-price row))}
+                                    {:name :Date :selector (fn [row] (.-timestamp row))}
+                                    {:name :Customer :selector (fn [row] (.-customer row))}] :data data}]))
+
+(e/defn ProposalEdit [m]
+        (e/client (dom/text m)))
 (e/defn AdminPage [company]
         (e/server
           (binding [conn @(requiring-resolve 'user/datomic-conn)]
             (binding [db (dt/db conn)]
               (e/client
                 (let [state (e/watch !state-supplier)]
+                  (swap! app.admin/!admin-state assoc-in [:table-clickers :supplier :click] false)
                   (if (and (empty? (:admin-user-selection state)) (or (:delete (:buttons state)) (:edit (:buttons state))))
                     (swap! !state-supplier assoc-in [:buttons :message] "Please Select User")
                     (do
@@ -345,7 +361,12 @@
                   (dom/ul (dom/props {:background-color "white"})
                     (dom/li (with-reagent reactive-btn "Delete"))
                     (dom/li (with-reagent reactive-btn "Edit"))
-                    (dom/li (with-reagent reactive-btn "Create")))))))))
+                    (dom/li (with-reagent reactive-btn "Create")))
+
+                  (dom/div
+                    (dom/h3 (dom/text  "Proposal Edit:"))
+                    (with-reagent proposal-table-edit (clj->js (e/server (proposal-data db company)))))))))))
+
 
 
 

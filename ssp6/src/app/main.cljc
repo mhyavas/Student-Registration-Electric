@@ -152,6 +152,12 @@
 
         (case page
               ::summary (history/router 1 (e/server (MainPage.)))
+              ::admin (history/router 1 (e/server (app.admin/AdminPage.)))
+              ::admin-companies (history/router 1 (e/server (app.admin/SelectCompany.)))
+              ::admin-projects (history/router 1 (e/server (app.admin/Projects.)))
+              ::admin-proposals (history/router 1 (e/server (app.admin/Proposals.)))
+              ::admin-edit-proposal (history/router 2 (e/server (app.admin/EditProposal. x)))
+              ::admin-edit-project (history/router 2 (e/server (app.admin/EditProject. x)))
               ::create-supplier (history/router 1 (e/server (CreateSupplier.)))
               ::create-customer (history/router 1 (e/server (CreateCustomer.)))
               ::customer-page (history/router 1 (e/server (app.customer/CompanySelect.)))
@@ -160,6 +166,8 @@
               ::customer-project-detail (history/router 2 (e/server (app.customer/ProjectDetail. x)))
               ::customer-create-project (history/router 2 (e/server (app.customer/CreateProject. x)))
               ::customer-create-author (history/router 2 (e/server (app.customer/CreateAuthor. x)))
+              ::customer-admin (history/router 2 (e/server (app.customer/AdminPage. x)))
+              ::customer-admin-edit (history/router 2 (e/server (app.customer/EditUser. x)))
               ::supplier-page (history/router 1 (e/server (app.supplier/CompanySelect.)))
               ::supplier-user-select (history/router 2 (e/server (app.supplier/UserSelect. x)))
               ::supplier-proposals (history/router 2 (e/server (app.supplier/ProposalPage. x)))

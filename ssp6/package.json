@@ -17,6 +17,8 @@
     "@yaireo/ui-switch": "^1.0.5",
     "react-multilevel-dropdown": "^4.0.0",
     "react-burger-menu": "^3.0.9",
-    "hamburger-react": "^2.5.0"
+    "hamburger-react": "^2.5.0",
+    "react-datepicker": "^4.21.0",
+    "react-date-picker": "^10.5.2"
   }
 }

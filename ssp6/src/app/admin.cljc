@@ -319,6 +319,16 @@
                  (dom/li (with-reagent reactive-btn "Edit"))))))))))
 
 
+#?(:cljs (defn project-detail-table [data]
+           [:> DataTable {:allowRowEvents true
+                          :onRowClicked (fn [v] (swap! !state-project assoc-in [:clicker :project-detail :types] (js->clj (.-types v)))
+                                          (swap! !state-project assoc-in [:clicker :project-detail :click] true))
+                          :columns [{:name :Title :selector (fn [row] (.-title row))}
+                                    {:name :Status :selector (fn [row] (.-status row))}
+                                    {:name :Create_Date :selector (fn [row] (.-create_date row))}
+                                    {:name :Description :selector (fn [row] (.-description row))}
+                                    {:name :Types :selector (fn [row] (str/split (.-types row) #"(?=[A-Z])"))}] :data data}]))
+
 (e/defn EditProject [m]
   (e/server
     (binding [conn @(requiring-resolve 'user/datomic-conn)]
@@ -327,8 +337,8 @@
           (swap! !admin-state assoc-in [:table-clickers :project :click] false)
           (let [edit-state (atom {:title "" :status :inactive :description "" :types [] :db-id 0})]
             (let [edit (e/watch edit-state)]
-              (if (:edit (:buttons state))
-                (do (e/server (dt/transact conn {:tx-data []}))))
+              ((if (:edit (:buttons state))
+                 (do (e/server (dt/transact conn {:tx-data []})))))
 
               (swap! edit-state assoc {:title (:project/title m) :status (:project/status m) :description (:project/description m) :types []})
               (let [value (e/server (ffirst (dt/q '[:find (pull ?p [*])
@@ -336,7 +346,7 @@
                                                     :where [?c :customer/name ?company]
                                                     [?p :project/customer ?c]
                                                     [?p :project/title ?title]] (dt/db conn) (:company m) (:title m))))]
-                (dom/text value)
+                (with-reagent project-detail-table (e/server (app.customer/project-detail-data (dt/db conn) value)))
                 (swap! edit-state assoc-in [:types] (e/server (map (fn [m] (ffirst (dt/q '[:find ?name
                                                                                            :in $ ?id
                                                                                            :where [?id :type/name ?name]] (dt/db conn) (:db/id m)))) (:project/types value))))
@@ -349,6 +359,29 @@
                   (dom/span (dom/text "Description: "))
                   (dom/input (dom/props {:placeholder (:project/description value) :type "text" :style {:width "200px" :word-wrap "break-word" :display "block" :text-overflow "hidden" :box-sizing "content-box" :overflow "visible" :white-space "normal"}}) ;}})
                              (dom/on "change" (e/fn [v] (swap! edit-state assoc-in [:description] (.-value dom/node))))))
+
+                (dom/div
+                  (dom/span (dom/text "Types: "))
+                  (e/for [value (e/server (dt/q '[:find ?name
+                                                  :where [?e :type/name ?name]] (dt/db conn)))]
+                         (dom/label
+                           (dom/input (dom/props {:type  "checkbox"
+                                                  :name  (first value)
+                                                  :value "true"})
+                                      (dom/on "change" (e/fn [v]
+                                                             (if (and (.-checked dom/node) (not (some (partial = (str (.-name dom/node))) (:types edit))))
+                                                               #_(swap! data update :nums conj {:first 1 :second 2})
+                                                               (swap! !state-project update-in [:project :types] conj (str (.-name dom/node)))
+                                                               (if (some (partial = (str (.-name dom/node))) (:types project))
+                                                                 (swap! !state-project update-in [:project :types] (fn [types] (vec (remove #(= (str (.-name dom/node)) %) types))))
+                                                                 nil)))))
+
+
+;todo checkbox kisminda hata var. Guncel typeler checked olacak. Sonrasinda edit-state guncellenecek.
+                           ;todo bookmarklanmis if statment true tarafina transact fonksiyonu yazilacak
+
+
+                           (dom/text (first value)))))
 
                 (dom/ul
                   (dom/li (with-reagent reactive-btn "Delete"))

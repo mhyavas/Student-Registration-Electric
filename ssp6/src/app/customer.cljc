@@ -23,6 +23,8 @@
             #?(:cljs ["react-dom/client" :as ReactDom])
             #?(:cljs ["react-data-table-component$default" :as DataTable])
             #?(:cljs ["reactjs-popup$default" :as Popup])
+            ;#?(:cljs ["react-datepicker" :as DatePicker])
+            #?(:cljs ["react-date-picker$default" :as DatePicker])
             [clojure.string :as str]))
 
 
@@ -356,7 +358,8 @@
                   #container {position:absolute;  left: 40%;  top: 50%; margin-left: -50px;  margin-top: -50px; font-style: italic;}"))
                            (dom/ul
                              (dom/li (history/link [:app.main/customer-create-project name] (dom/text "Create Project")))
-                             (dom/li (history/link [:app.main/customer-create-author name] (dom/text "Create Author")))))
+                             (dom/li (history/link [:app.main/customer-create-author name] (dom/text "Create Author")))
+                             (dom/li (history/link [:app.main/customer-main-report] (dom/text "Reports")))))
                   (dom/text (e/server (project-data db name)))
                   (dom/div (with-reagent project-table (clj->js (e/server (project-data db name)))))
 
@@ -477,6 +480,13 @@
                                                                           (= (.getDate (java.util.Date.)) (.getDate (java.util.Date. (:project/create_date (first value))))))
                                                                       (.format (java.text.SimpleDateFormat. "HH:mm:ss") (java.util.Date. (:project/create_date (first value))))
                                                                       (.format (java.text.SimpleDateFormat. "MM/dd/yyyy") (java.util.Date. (:project/create_date (first value))))))))))))))))))
+
+#?(:cljs (defn picker []
+           [:> DatePicker {:closeCalendar true :isOpen false :onChange (fn [v] (apply (.-log js/console) [v]))}]))
+(e/defn ReportPage []
+  (e/client
+    (dom/text "Report Page")
+    (with-reagent picker)))
 
 (e/defn CustomerPage []
         (e/client (dom/text "CustomerPage")

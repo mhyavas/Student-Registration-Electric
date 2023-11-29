@@ -25,6 +25,10 @@
             #?(:cljs ["reactjs-popup$default" :as Popup])
             ;#?(:cljs ["react-datepicker" :as DatePicker])
             #?(:cljs ["react-date-picker$default" :as DatePicker])
+            #?(:cljs ["react-calendar$default" :as Calendar])
+            #?(:cljs [garden.core :refer [css]])
+            #?(:cljs [stylefy.core :as stylefy :refer [use-style]])
+            #?(:cljs ["react-csv"] :refer [CSVLink CSVDownload])
             [clojure.string :as str]))
 
 
@@ -70,7 +74,9 @@
                            :buttons {:delete false
                                      :edit false
                                      :create false
-                                     :message ""}}))
+                                     :message ""}
+                           :report {:start 0
+                                    :end 0}}))
 
 
 (defn set-username! [name]
@@ -359,7 +365,7 @@
                            (dom/ul
                              (dom/li (history/link [:app.main/customer-create-project name] (dom/text "Create Project")))
                              (dom/li (history/link [:app.main/customer-create-author name] (dom/text "Create Author")))
-                             (dom/li (history/link [:app.main/customer-main-report] (dom/text "Reports")))))
+                             (dom/li (history/link [:app.main/customer-main-report name] (dom/text "Reports")))))
                   (dom/text (e/server (project-data db name)))
                   (dom/div (with-reagent project-table (clj->js (e/server (project-data db name)))))
 
@@ -482,11 +488,118 @@
                                                                       (.format (java.text.SimpleDateFormat. "MM/dd/yyyy") (java.util.Date. (:project/create_date (first value))))))))))))))))))
 
 #?(:cljs (defn picker []
-           [:> DatePicker {:closeCalendar true :isOpen false :onChange (fn [v] (apply (.-log js/console) [v]))}]))
-(e/defn ReportPage []
-  (e/client
-    (dom/text "Report Page")
-    (with-reagent picker)))
+           #_[:> Calendar  {:onChange (fn [v] (apply (.-log js/console) [v]))}]
+           [:div
+            [:> DatePicker {:onChange (fn [v] (apply (.-log js/console) [v]))}]]))
+
+#?(:clj (defn report-data [db data]
+          (into [] (map (fn [m] {:title       (:project/title (first m))
+                                 :status      (:project/status (first m))
+                                 :create_date (if (and
+                                                    (and
+                                                      (= (.getMonth (java.util.Date.)) (.getMonth (java.util.Date. (:project/create_date (first m)))))
+                                                      (= (.getYear (java.util.Date.)) (.getYear (java.util.Date. (:project/create_date (first m))))))
+                                                    (= (.getDate (java.util.Date.)) (.getDate (java.util.Date. (:project/create_date (first m))))))
+                                                (.format (java.text.SimpleDateFormat. "HH:mm:ss") (java.util.Date. (:project/create_date (first m))))
+                                                (.format (java.text.SimpleDateFormat. "MM/dd/yyyy") (java.util.Date. (:project/create_date (first m)))))
+                                 :description (:project/description (first m))
+                                 :types       (into [] (flatten (map (fn [mt] (flatten (dt/q '[:find ?name
+                                                                                               :in $ ?e
+                                                                                               :where [?e :type/name ?name]] db (:db/id mt)))) (:project/types (first m)))))}) data))))
+;todo CSV aktarma butonu eklenecek. Diger filtrasyon ozellikleri eklenecek.
+;todo ana sayfaya sirket ile alaklai yorum kismi eklencek.
+;ssp1 rojesin yorum icin schema olusturalacak
+#?(:cljs (defn report-table [title data]
+           [:> DataTable {:allowRowEvents true
+                          :title title
+                          :selectableRows true
+                          :onSelectedRowsChange ;State'e kaydet sonrsinda buton olustur ve csv export tarfini hallet
+                          :columns [{:name :Title :selector (fn [row] (.-title row))}
+                                    {:name :Status :selector (fn [row] (.-status row))}
+                                    {:name :Create_Date :selector (fn [row] (.-create_date row))}
+                                    {:name :Description :selector (fn [row] (.-description row))}
+                                    {:name :Types :selector (fn [row] (str/split (.-types row) #"(?=[A-Z])"))}] :data data}]))
+(e/defn ReportPage [name]
+  (e/server
+    (binding [conn @(requiring-resolve 'user/datomic-conn)]
+      (e/client
+        (let [state (e/watch !state-project)]
+          (dom/h3 (dom/text "Report Page"))
+          (dom/text (:report state))
+          (dom/div
+            (dom/ul (dom/props {:style {:background-color "white"}})
+                    (dom/li (dom/text "from:" (dom/props {:class "text"}))
+
+                            (ui4/date
+                              (:start (:report state)) (e/fn [v] (swap! !state-project assoc-in [:report :start] (inst-ms* v))
+                                                             #_(apply (.-log js/console) v))))
+                    (dom/li (dom/text "to:" (dom/props {:class "text"}))
+
+                            (ui4/date
+                              (:end (:report state)) (e/fn [v] (swap! !state-project assoc-in [:report :end] (inst-ms* v))
+                                                           #_(apply (.-log js/console) v))))))
+          (dom/text (cond
+                      (and (= 0 (:start (:report state))) (= 0 (:end (:report state)))) (e/server (dt/q '[:find (pull ?e [*])
+                                                                                                          :in $ ?company
+                                                                                                          :where
+                                                                                                          [?c :customer/name ?company]
+                                                                                                          [?e :project/create_date _]
+                                                                                                          [?e :project/customer ?c]] (dt/db conn) name))
+                      (and (< 0 (:start (:report state))) (< 0 (:end (:report state)))) (e/server (dt/q '[:find (pull ?e [*])
+                                                                                                          :in $ ?start ?end ?company
+                                                                                                          :where [?e :project/create_date ?date]
+                                                                                                          [?c :customer/name ?company]
+                                                                                                          [?e :project/customer ?c]
+                                                                                                          [(> ?date ?start)]
+                                                                                                          [(< ?date ?end)]] (dt/db conn) (:start (:report state)) (:end (:report state)) name))
+                      (and (= 0 (:start (:report state))) (< 0 (:end (:report state)))) (e/server (dt/q '[:find (pull ?e [*])
+                                                                                                          :in $ ?end ?company
+                                                                                                          :where [?e :project/create_date ?date]
+                                                                                                          [?c :customer/name ?company]
+                                                                                                          [?e :project/customer ?c]
+                                                                                                          [(< ?date ?end)]] (dt/db conn) (:end (:report state)) name))
+                      (and (= 0 (:end (:report state))) (< 0 (:start (:report state)))) (e/server (dt/q '[:find (pull ?e [*])
+                                                                                                          :in $ ?start ?company
+                                                                                                          :where [?e :project/create_date ?date]
+                                                                                                          [?c :customer/name ?company]
+                                                                                                          [?e :project/customer ?c]
+                                                                                                          [(> ?date ?start)]] (dt/db conn) (:start (:report state)) name))))
+          (with-reagent report-table (e/server (str (.format (java.text.SimpleDateFormat. "MM/dd/yyyy") (java.util.Date. (:start (:report state)))) "-" (.format (java.text.SimpleDateFormat. "MM/dd/yyyy") (java.util.Date. (:end (:report state))))))
+                        (clj->js (e/server (report-data (dt/db conn ) (cond
+                                                                        (and (= 0 (:start (:report state))) (= 0 (:end (:report state)))) (e/server (dt/q '[:find (pull ?e [*])
+                                                                                                                                                            :in $ ?company
+                                                                                                                                                            :where
+                                                                                                                                                            [?c :customer/name ?company]
+                                                                                                                                                            [?e :project/customer ?c]
+                                                                                                                                                            [?e :project/create_date _]] (dt/db conn) name))
+                                                                        (and (< 0 (:start (:report state))) (< 0 (:end (:report state)))) (e/server (dt/q '[:find (pull ?e [*])
+                                                                                                                                                            :in $ ?start ?end ?company
+                                                                                                                                                            :where [?e :project/create_date ?date]
+                                                                                                                                                            [?c :customer/name ?company]
+                                                                                                                                                            [?e :project/customer ?c]
+                                                                                                                                                            [(> ?date ?start)]
+                                                                                                                                                            [(< ?date ?end)]] (dt/db conn) (:start (:report state)) (:end (:report state)) name))
+                                                                        (and (= 0 (:start (:report state))) (< 0 (:end (:report state)))) (e/server (dt/q '[:find (pull ?e [*])
+                                                                                                                                                            :in $ ?end ?company
+                                                                                                                                                            :where [?e :project/create_date ?date]
+                                                                                                                                                            [?c :customer/name ?company]
+                                                                                                                                                            [?e :project/customer ?c]
+                                                                                                                                                            [(< ?date ?end)]] (dt/db conn) (:end (:report state)) name))
+                                                                        (and (= 0 (:end (:report state))) (< 0 (:start (:report state)))) (e/server (dt/q '[:find (pull ?e [*])
+                                                                                                                                                            :in $ ?start ?company
+                                                                                                                                                            :where [?e :project/create_date ?date]
+                                                                                                                                                            [?c :customer/name ?company]
+                                                                                                                                                            [?e :project/customer ?c]
+                                                                                                                                                            [(> ?date ?start)]] (dt/db conn) (:start (:report state)) name)))))))
+
+
+
+
+
+
+
+          #_(with-reagent picker))))))
+
 
 (e/defn CustomerPage []
         (e/client (dom/text "CustomerPage")
@@ -499,8 +612,51 @@
              "Edit"   [:> ReactiveButton {:color "yellow" :idleText "Edit" :onClick (fn [] (swap! !state-project assoc-in [:buttons :edit] true))}]
              "Create" [:> ReactiveButton {:color "green" :idleText "Create" :onClick (fn [] (swap! !state-project assoc-in [:buttons :create] true))}])))
 (e/defn EditUser [[m company]]
-  (e/client
-    (dom/text "Customer Edit User")))
+  (e/server
+    (binding [conn @(requiring-resolve 'user/datomic-conn)]
+      (e/client
+        (let [edit-state (atom {:user-name "" :password "" :admin false})]
+          (swap! edit-state assoc-in [:admin] (:admin (clojure.walk/keywordize-keys (first m))))
+          (swap! edit-state assoc-in [:user-name] (:user (clojure.walk/keywordize-keys (first m))))
+          (swap! edit-state assoc-in [:password] (:password (clojure.walk/keywordize-keys (first m))))
+          (dom/div
+            (dom/span (dom/text "User: "))
+            (dom/input (dom/props {:placeholder (:user (clojure.walk/keywordize-keys (first m)))})
+                       (dom/on "change" (e/fn [v] (swap! edit-state assoc-in [:user-name] (.-value dom/node))))))
+          (dom/div
+            (dom/span (dom/text "Password: "))
+            (dom/input (dom/props {:placeholder (:password (clojure.walk/keywordize-keys (first m)))})
+                       (dom/on "change" (e/fn [v] (swap! edit-state assoc-in [:password] (.-value dom/node))))))
+          (dom/text "Customer Edit User"))))))
+
+#?(:clj (defn admin-user-data [db company]
+          (vec (map (fn [[id user password admin]]
+                      {:id      id
+                       :user user
+                       :password password
+                       :admin admin})
+                    (vec (->>
+                           (dt/q
+                             '[:find ?id ?user ?password ?admin
+                               :in $ ?company
+                               :where
+                               [?e :customer/name ?company]
+                               [?u :author/company ?e]
+                               [?u :author/id ?id]
+                               [?u :author/name ?user]
+                               [?u :author/admin ?admin]
+                               [?p :password/user ?u]
+                               [?p :password/password ?password]]
+                             db company)))))))
+
+#?(:cljs (defn admin-user-table [data]
+           [:> DataTable {:allowRowEvents       true
+                          :selectableRows       true
+                          :onSelectedRowsChange (fn [v] (swap! !state-project assoc-in [:admin-user-selection] (js->clj (.-selectedRows v))))
+                          :columns              [{:name :User :sortable true :selector (fn [row] (.-user row))}
+                                                 {:name :Password :selector  (fn [row] (.-password row))}
+                                                 {:name :Admin :sortable true :selector (fn [row] (str (.-admin row)))}]
+                          :data                 data}]))
 (e/defn AdminPage [company]
   (e/server
     (binding [conn @(requiring-resolve 'user/datomic-conn)]
@@ -522,4 +678,5 @@
             (dom/h3 (dom/text "Total registered user: " (e/server (ffirst (dt/q '[:find (count ?e)
                                                                                   :in $ ?company
                                                                                   :where [?c :customer/name ?company]
-                                                                                  [?e :author/company ?c]] db company)))))))))))
+                                                                                  [?e :author/company ?c]] db company)))))
+            (with-reagent admin-user-table (clj->js (e/server (admin-user-data db company))))))))))

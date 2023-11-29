@@ -168,7 +168,7 @@
               ::customer-create-author (history/router 2 (e/server (app.customer/CreateAuthor. x)))
               ::customer-admin (history/router 2 (e/server (app.customer/AdminPage. x)))
               ::customer-admin-edit (history/router 2 (e/server (app.customer/EditUser. x)))
-              ::customer-main-report (history/router 1 (e/server (app.customer/ReportPage.)))
+              ::customer-main-report (history/router 2 (e/server (app.customer/ReportPage. x)))
               ::supplier-page (history/router 1 (e/server (app.supplier/CompanySelect.)))
               ::supplier-user-select (history/router 2 (e/server (app.supplier/UserSelect. x)))
               ::supplier-proposals (history/router 2 (e/server (app.supplier/ProposalPage. x)))

@@ -2,11 +2,14 @@
   (:require
     app.main
     hyperfiddle.electric
-    hyperfiddle.electric-dom2))
+    hyperfiddle.electric-dom2
+    [stylefy.core :as stylefy]
+    [stylefy.reagent :as stylefy-reagent]))
 
 (def electric-main
   (hyperfiddle.electric/boot ; Electric macroexpansion - Clojure to signals compiler
     (binding [hyperfiddle.electric-dom2/node js/document.body]
+      (stylefy/init {:dom (stylefy-reagent/init)})
       (app.main/Main.))))
 
 (defonce reactor nil)

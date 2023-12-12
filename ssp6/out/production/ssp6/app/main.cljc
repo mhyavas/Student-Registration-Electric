@@ -1,17 +1,41 @@
-(ns main
+(ns app.main
     #?(:cljs (:import [goog.math Long]))
-    (:require clojure.edn
-        contrib.ednish
-        app.customer
-        app.supplier
-        [hyperfiddle.electric-ui4 :as ui4]
-        #?(:cljs contrib.datomic-cloud-contrib)
-        [hyperfiddle.electric :as e]
-        [hyperfiddle.electric-dom2 :as dom]
-        [hyperfiddle.history :as history]
-        #?(:clj [datomic.client.api :as dt])))
+    #?(:cljs (:require-macros [app.main :refer [with-reagent]]))
+  (:require clojure.edn
+            app.customer
+            app.supplier
+            app.msg-test
+            app.admin
+            contrib.ednish
+            [hyperfiddle.electric-ui4 :as ui4]
+            [hyperfiddle.electric :as e]
+            [hyperfiddle.electric-dom2 :as dom]
+            [hyperfiddle.history :as history]
+            #?(:clj [datomic.client.api :as dt])
+            #?(:cljs ["react" :as react])
+            #?(:cljs ["slate" :refer [createEditor]])
+            #?(:cljs ["slate-react" :refer [Slate Editable withReact]])
+            #?(:cljs [reagent.core :as r])
+            #?(:cljs [reagent.dom :as rdom])
+            #?(:cljs ["react-awesome-button" :as AwesomeButton])
+            #?(:cljs ["react-dom/client" :as ReactDom])
+            #?(:cljs ["react-data-table-component$default" :as DataTable])))
 
 
+#?(:cljs (defn create-root
+           "See https://reactjs.org/docs/react-dom-client.html#createroot"
+           ([node] (create-root node (str (gensym))))
+           ([node id-prefix]
+            (ReactDom/createRoot node #js {:identifierPrefix id-prefix}))))
+#?(:cljs (defn render [root & args]
+           (.render root (r/as-element (into [:f>] args)))))
+
+
+(defmacro with-reagent [& args]
+  `(dom/div
+     (let [root# (create-root dom/node)]
+       (render root# ~@args)
+       (e/on-unmount #(.unmount root#)))))
 (def !state-cs (atom {:customer {:name ""}
                       :supplier {:name ""
                                  :types []}}))
@@ -87,21 +111,76 @@
                                              (e/server (dt/transact conn {:tx-data [{:customer/id (next-customer-id (dt/db conn))}]
                                                                           :customer/name (:name customer)})))
                                        (dom/text "Create Customer"))))))))
+#?(:cljs (defn button-test []
+           [:> AwesomeButton/AwesomeButton {:onPress (fn [] (history/navigate! history/!history [::customer-page])) :type "primary" :size "medium" :button-primary-color "#1e88e5" :button-primary-color-dark "#1360a4"} "TEST"]))
 
+(e/defn MainPage []
+        (e/client
+          (dom/h1 (dom/text "Select the Sub Page:"))
+          (dom/div
+            (history/link [::create-supplier] (dom/text "Create Supplier")))
+          (dom/div
+            (history/link [::create-customer] (dom/text "Create Customer")))
+          (with-reagent button-test)))
 
 (e/defn Page [[page x]]
         (e/client
           (dom/h1 (dom/text "Software Sourcing Platform"))
           (dom/link (dom/props {:rel :stylesheet, :href "gridsheet-optional.css"}))
-          (dom/div (dom/text "Nav: ")
-                   (history/link [::summary] (dom/text "home")) (dom/text " ")))
+          (dom/element "style" (dom/text "
+                  ul{list-style-type: none; margin: 0; padding: 0; background-color: orange; overflow: auto; }
+                  li {float: left;}
+                  li a {color: white; padding: 15px 25px; display: inline-block; text-align: center; text-decoration: none;}
+                  .home {background-color: darkred;}
+                  li a:hover {
+                  background-color: #405d27;
+                  legend {font-size: 25px; font-style: italic;} p {margin-bottom: 0}
+                  }
+
+                  tr {vertical-align: inherit; display: table-row}"))
+
+          (dom/div
+            (dom/ul (dom/props {:class "ul"})
+                    (dom/li (dom/props {:float "left"}) (history/link [::summary] (dom/text "home")))
+                    (dom/li (dom/props {:float "left"}) (history/link [::customer-page] (dom/text "Customer Side")))
+                    (dom/li (dom/props {:float "left"}) (history/link [::supplier-page] (dom/text "Supplier Side")))
+                    (dom/li (dom/props {:float "left"}) (history/link [::admin] (dom/text "Admin")))
+                    (dom/li (dom/props {:float "left"}) (history/link [::msg-test] (dom/text "MSG_TEST"))))))
+
 
 
 
         (case page
               ::summary (history/router 1 (e/server (MainPage.)))
+              ::admin (history/router 1 (e/server (app.admin/AdminPage.)))
+              ::admin-companies (history/router 1 (e/server (app.admin/SelectCompany.)))
+              ::admin-projects (history/router 1 (e/server (app.admin/Projects.)))
+              ::admin-proposals (history/router 1 (e/server (app.admin/Proposals.)))
+              ::admin-edit-proposal (history/router 2 (e/server (app.admin/EditProposal. x)))
+              ::admin-edit-project (history/router 2 (e/server (app.admin/EditProject. x)))
               ::create-supplier (history/router 1 (e/server (CreateSupplier.)))
               ::create-customer (history/router 1 (e/server (CreateCustomer.)))
+              ::customer-page (history/router 1 (e/server (app.customer/CompanySelect.)))
+              ::customer-user-select (history/router 2 (e/server (app.customer/UserSelect. x)))
+              ::customer-projects (history/router 2 (e/server (app.customer/Projects. x)))
+              ::customer-project-detail (history/router 2 (e/server (app.customer/ProjectDetail. x)))
+              ::customer-create-project (history/router 2 (e/server (app.customer/CreateProject. x)))
+              ::customer-create-author (history/router 2 (e/server (app.customer/CreateAuthor. x)))
+              ::customer-admin (history/router 2 (e/server (app.customer/AdminPage. x)))
+              ::customer-admin-edit (history/router 2 (e/server (app.customer/EditUser. x)))
+              ::customer-main-report (history/router 2 (e/server (app.customer/ReportPage. x)))
+              ::supplier-page (history/router 1 (e/server (app.supplier/CompanySelect.)))
+              ::supplier-user-select (history/router 2 (e/server (app.supplier/UserSelect. x)))
+              ::supplier-proposals (history/router 2 (e/server (app.supplier/ProposalPage. x)))
+              ::supplier-create-author (history/router 2 (e/server (app.supplier/CreateAuthor. x)))
+              ::supplier-find-project (history/router 2 (e/server (app.supplier/FindProject. x)))
+              ::supplier-main-message (history/router 1 (e/server (app.supplier/MainMessage.)))
+              ::supplier-profile (history/router 2 (e/server (app.supplier/ProfilePage. x)))
+              ::supplier-chat (history/router 2 (e/server (app.supplier/ChatPage. x)))
+              ::supplier-admin-edit (history/router 2 (e/server (app.supplier/EditUser. x)))
+              ::custom2 (history/router 2 (e/server (app.customer/CustomerPage2. x)))
+              ::msg-test (history/router 2 (e/server (app.msg-test/MessageTest.)))
+              ::supplier-admin (history/router 2 (e/server (app.supplier/AdminPage. x)))
               (e/client (dom/text "no matching route: " (pr-str page)))))
 (def read-edn-str (partial clojure.edn/read-string
                            {:readers #?(:cljs {'goog.math/Long goog.math.Long/fromString} ; datomic cloud long ids

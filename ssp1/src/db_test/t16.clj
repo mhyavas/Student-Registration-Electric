@@ -33,6 +33,16 @@
                      :db/valueType :db.type/long
                      :db/cardinality :db.cardinality/one}])
 
-(dt/transact conn {:tx-data review-schema})
+#_(dt/transact conn {:tx-data review-schema})
+(dt/q '[:find ?e :where [?e :supplier/name "Sabanci Holding"]] db)
 
+(def sample-review [{:review/id 1
+                     :review/to 74766790688880
+                     :review/from 79164837199981
+                     :review/timestamp (System/currentTimeMillis)
+                     :review/review "Review test 1"
+                     :review/like 3
+                     :review/dislike 1}])
+
+(dt/transact conn {:tx-data sample-review})
 

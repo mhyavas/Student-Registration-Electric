@@ -6,14 +6,14 @@ hyperfiddle.electric_ui4.checked = (function hyperfiddle$electric_ui4$checked(e)
 return e.target.checked;
 });
 hyperfiddle.electric_ui4.parse_edn = (function hyperfiddle$electric_ui4$parse_edn(s){
-try{var G__34310 = s;
-var G__34310__$1 = (((G__34310 == null))?null:contrib.str.blank__GT_nil(G__34310));
-if((G__34310__$1 == null)){
+try{var G__51634 = s;
+var G__51634__$1 = (((G__51634 == null))?null:contrib.str.blank__GT_nil(G__51634));
+if((G__51634__$1 == null)){
 return null;
 } else {
-return clojure.edn.read_string.cljs$core$IFn$_invoke$arity$1(G__34310__$1);
+return clojure.edn.read_string.cljs$core$IFn$_invoke$arity$1(G__51634__$1);
 }
-}catch (e34309){var _ = e34309;
+}catch (e51633){var _ = e51633;
 return null;
 }});
 hyperfiddle.electric_ui4.keep_if = (function hyperfiddle$electric_ui4$keep_if(pred,v){
@@ -32,12 +32,12 @@ return hyperfiddle.electric_ui4.keep_if(cljs.core.symbol_QMARK_,hyperfiddle.elec
 hyperfiddle.electric_ui4.uuid_pattern = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$";
 hyperfiddle.electric_ui4.parse_date = (function hyperfiddle$electric_ui4$parse_date(s){
 try{return (new Date(s));
-}catch (e34319){var _ = e34319;
+}catch (e51640){var _ = e51640;
 return null;
 }});
 hyperfiddle.electric_ui4.parse_datetime_local = (function hyperfiddle$electric_ui4$parse_datetime_local(s){
 try{return (new Date(s));
-}catch (e34320){var _ = e34320;
+}catch (e51641){var _ = e51641;
 return null;
 }});
 hyperfiddle.electric_ui4.first_option = (function hyperfiddle$electric_ui4$first_option(elem){
@@ -107,8 +107,8 @@ return new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMP
 hyperfiddle.electric_ui4.scroll_state_GT_ = (function hyperfiddle$electric_ui4$scroll_state_GT_(scrollable){
 return missionary.core.observe((function (_BANG_){
 var sample = (function (){
-var G__34392 = hyperfiddle.electric_ui4.sample_scroll_state_BANG_(scrollable);
-return (_BANG_.cljs$core$IFn$_invoke$arity$1 ? _BANG_.cljs$core$IFn$_invoke$arity$1(G__34392) : _BANG_.call(null,G__34392));
+var G__51694 = hyperfiddle.electric_ui4.sample_scroll_state_BANG_(scrollable);
+return (_BANG_.cljs$core$IFn$_invoke$arity$1 ? _BANG_.cljs$core$IFn$_invoke$arity$1(G__51694) : _BANG_.call(null,G__51694));
 });
 scrollable.addEventListener("scroll",sample,({"passive": true}));
 
@@ -119,12 +119,12 @@ return scrollable.removeEventListener("scroll",sample);
 });
 hyperfiddle.electric_ui4._BANG_scrollStateDebug = cljs.core.atom.cljs$core$IFn$_invoke$arity$1(null);
 hyperfiddle.electric_ui4.scroll_state_LT_ = (function hyperfiddle$electric_ui4$scroll_state_LT_(scrollable){
-return missionary.core.latest.cljs$core$IFn$_invoke$arity$variadic((function (p__34397){
-var vec__34398 = p__34397;
-var scrollTop = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__34398,(0),null);
-var scrollHeight = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__34398,(1),null);
-var clientHeight = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__34398,(2),null);
-var s = vec__34398;
+return missionary.core.latest.cljs$core$IFn$_invoke$arity$variadic((function (p__51695){
+var vec__51696 = p__51695;
+var scrollTop = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__51696,(0),null);
+var scrollHeight = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__51696,(1),null);
+var clientHeight = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__51696,(2),null);
+var s = vec__51696;
 cljs.core.reset_BANG_(hyperfiddle.electric_ui4._BANG_scrollStateDebug,new cljs.core.PersistentArrayMap(null, 3, [new cljs.core.Keyword("hyperfiddle.electric-ui4","scrollTop","hyperfiddle.electric-ui4/scrollTop",583402921),scrollTop,new cljs.core.Keyword("hyperfiddle.electric-ui4","scrollHeight","hyperfiddle.electric-ui4/scrollHeight",1458584203),scrollHeight,new cljs.core.Keyword("hyperfiddle.electric-ui4","clientHeight","hyperfiddle.electric-ui4/clientHeight",1551343163),clientHeight], null));
 
 return s;

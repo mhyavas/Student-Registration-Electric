@@ -16,14 +16,14 @@ return new cljs.core.PersistentArrayMap(null, 2, [new cljs.core.Keyword("hyperfi
 });
 hyperfiddle.electric.impl.ir.apply = (function hyperfiddle$electric$impl$ir$apply(var_args){
 var args__5775__auto__ = [];
-var len__5769__auto___28675 = arguments.length;
-var i__5770__auto___28676 = (0);
+var len__5769__auto___45577 = arguments.length;
+var i__5770__auto___45578 = (0);
 while(true){
-if((i__5770__auto___28676 < len__5769__auto___28675)){
-args__5775__auto__.push((arguments[i__5770__auto___28676]));
+if((i__5770__auto___45578 < len__5769__auto___45577)){
+args__5775__auto__.push((arguments[i__5770__auto___45578]));
 
-var G__28677 = (i__5770__auto___28676 + (1));
-i__5770__auto___28676 = G__28677;
+var G__45579 = (i__5770__auto___45578 + (1));
+i__5770__auto___45578 = G__45579;
 continue;
 } else {
 }
@@ -41,11 +41,11 @@ return new cljs.core.PersistentArrayMap(null, 3, [new cljs.core.Keyword("hyperfi
 (hyperfiddle.electric.impl.ir.apply.cljs$lang$maxFixedArity = (1));
 
 /** @this {Function} */
-(hyperfiddle.electric.impl.ir.apply.cljs$lang$applyTo = (function (seq28671){
-var G__28672 = cljs.core.first(seq28671);
-var seq28671__$1 = cljs.core.next(seq28671);
+(hyperfiddle.electric.impl.ir.apply.cljs$lang$applyTo = (function (seq45573){
+var G__45574 = cljs.core.first(seq45573);
+var seq45573__$1 = cljs.core.next(seq45573);
 var self__5754__auto__ = this;
-return self__5754__auto__.cljs$core$IFn$_invoke$arity$variadic(G__28672,seq28671__$1);
+return self__5754__auto__.cljs$core$IFn$_invoke$arity$variadic(G__45574,seq45573__$1);
 }));
 
 hyperfiddle.electric.impl.ir.global = (function hyperfiddle$electric$impl$ir$global(k){

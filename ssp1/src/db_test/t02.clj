@@ -35,7 +35,9 @@
                       {:db/ident       :customer/name
                        :db/valueType   :db.type/string
                        :db/unique      :db.unique/identity
-                       :db/cardinality :db.cardinality/one}])
+                       :db/cardinality :db.cardinality/one}
+                      {}])
+
 (d/transact conn {:tx-data customer-schema})
 
 (def proposal-schema [{:db/ident :proposal/id

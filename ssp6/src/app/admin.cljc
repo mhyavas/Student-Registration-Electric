@@ -63,8 +63,8 @@
            [:> DataTable {:allowRowEvents true
                           :onRowClicked (fn [v] (swap! !admin-state assoc-in [:table-clickers :customer :company] (.-company v))
                                           (swap! !admin-state assoc-in [:table-clickers :customer :click] true))
-                          :columns [{:name :Company :selector (fn [row] (.-company row))}
-                                    {:name :User :selector (fn [row] (.-user row))}]
+                          :columns [{:name :Company :sortable true :selector (fn [row] (.-company row))}
+                                    {:name :User :sortable true :selector (fn [row] (.-user row))}]
                           :data data}]))
 
 #?(:clj (defn customer-data [db]
@@ -172,9 +172,9 @@
                           :onRowClicked (fn [v] (swap! !admin-state assoc-in [:table-clickers :project :title] (.-title v))
                                                 (swap! !admin-state assoc-in [:table-clickers :project :click] true))
 
-                          :columns              [{:name :Title :selector (fn [row] (.-title row))}
-                                                 {:name :Status :selector (fn [row] (.-status row))}
-                                                 {:name :Create_Date :selector (fn [row] (.-create_date row))}
+                          :columns              [{:name :Title :sortable true :selector (fn [row] (.-title row))}
+                                                 {:name :Status :sortable true :selector (fn [row] (.-status row))}
+                                                 {:name :Create_Date :sortable true :selector (fn [row] (.-create_date row))}
                                                  {:name :Description :selector (fn [row] (.-description row))}
                                                  {:name :Type :selector (fn [row] (str/split (.-type row) #"(?=[A-Z])"))}]
                           :data                 data}]))
@@ -223,12 +223,13 @@
                              db company)))))))
 #?(:cljs (defn proposal-table [data]
            [:> DataTable {:allowRowEvents       true
+                          :pagination true
                           :onRowClicked (fn [v] (swap! !admin-state assoc-in [:table-clickers :proposal :project-title] (.-title v))
                                           (swap! !admin-state assoc-in [:table-clickers :proposal :click] true))
-                          :columns              [{:name :Title :selector (fn [row] (.-title row))}
+                          :columns              [{:name :Title :sortable true :selector (fn [row] (.-title row))}
                                                  {:name :Status :selector (fn [row] (.-status row))}
-                                                 {:name :Create_Date :selector (fn [row] (.-create_date row))}
-                                                 {:name :Price :selector (fn [row] (.-price row))}]
+                                                 {:name :Create_Date :sortable true :selector (fn [row] (.-create_date row))}
+                                                 {:name :Price :sortable true :selector (fn [row] (.-price row))}]
                           :data                 data}]))
 
 (e/defn Proposals []
@@ -323,9 +324,9 @@
            [:> DataTable {:allowRowEvents true
                           :onRowClicked (fn [v] (swap! !state-project assoc-in [:clicker :project-detail :types] (js->clj (.-types v)))
                                           (swap! !state-project assoc-in [:clicker :project-detail :click] true))
-                          :columns [{:name :Title :selector (fn [row] (.-title row))}
-                                    {:name :Status :selector (fn [row] (.-status row))}
-                                    {:name :Create_Date :selector (fn [row] (.-create_date row))}
+                          :columns [{:name :Title :sortable true :selector (fn [row] (.-title row))}
+                                    {:name :Status :sortable true :selector (fn [row] (.-status row))}
+                                    {:name :Create_Date :sortable true :selector (fn [row] (.-create_date row))}
                                     {:name :Description :selector (fn [row] (.-description row))}
                                     {:name :Types :selector (fn [row] (str/split (.-types row) #"(?=[A-Z])"))}] :data data}]))
 

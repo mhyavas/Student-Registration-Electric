@@ -1,0 +1,9 @@
+{
+"version":3,
+"file":"shadow.js.shim.module$reactjs_popup$default.js",
+"lineCount":3,
+"mappings":"AAAAA,IAAKC,CAAAA,OAAL,CAAa,6CAAb,CAAA;AACAC,MAAOC,CAAAA,EAAGC,CAAAA,IAAKC,CAAAA,4BAAf,GAA8CH,MAAOC,CAAAA,EAAGG,CAAAA,OAAV,CAAkB,8CAAlB,EAAkE,EAAlE,CAAA,CAAsE,SAAtE,CAA9C;;",
+"sources":["shadow.js.shim.module$reactjs_popup$default.js"],
+"sourcesContent":["goog.provide(\"shadow.js.shim.module$reactjs_popup$default\");\nshadow.js.shim.module$reactjs_popup$default = shadow.js.require(\"module$node_modules$reactjs_popup$dist$index\", {})[\"default\"];\n"],
+"names":["goog","provide","shadow","js","shim","module$reactjs_popup$default","require"]
+}

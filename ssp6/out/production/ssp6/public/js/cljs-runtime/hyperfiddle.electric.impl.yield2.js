@@ -23,11 +23,11 @@ this.state_ = state_;
 this.cljs$lang$protocol_mask$partition0$ = 32769;
 this.cljs$lang$protocol_mask$partition1$ = 0;
 });
-(hyperfiddle.electric.impl.yield2.Yield.prototype.call = (function (unused__13656__auto__){
+(hyperfiddle.electric.impl.yield2.Yield.prototype.call = (function (unused__27519__auto__){
 var self__ = this;
 var self__ = this;
-var G__29511 = (arguments.length - (1));
-switch (G__29511) {
+var G__42483 = (arguments.length - (1));
+switch (G__42483) {
 case (0):
 return self__.cljs$core$IFn$_invoke$arity$0();
 
@@ -38,10 +38,10 @@ throw (new Error(["Invalid arity: ",cljs.core.str.cljs$core$IFn$_invoke$arity$1(
 }
 }));
 
-(hyperfiddle.electric.impl.yield2.Yield.prototype.apply = (function (self__,args29510){
+(hyperfiddle.electric.impl.yield2.Yield.prototype.apply = (function (self__,args42480){
 var self__ = this;
 var self____$1 = this;
-return self____$1.call.apply(self____$1,[self____$1].concat(cljs.core.aclone(args29510)));
+return self____$1.call.apply(self____$1,[self____$1].concat(cljs.core.aclone(args42480)));
 }));
 
 (hyperfiddle.electric.impl.yield2.Yield.prototype.cljs$core$IFn$_invoke$arity$0 = (function (){
@@ -85,18 +85,18 @@ if(cljs.core.truth_((function (){var or__5045__auto__ = hyperfiddle.electric.imp
 if(cljs.core.truth_(or__5045__auto__)){
 return or__5045__auto__;
 } else {
-var G__29517 = hyperfiddle.electric.impl.array_fields.get(Y.state_,hyperfiddle.electric.impl.yield2.recover);
-if((G__29517 == null)){
+var G__42487 = hyperfiddle.electric.impl.array_fields.get(Y.state_,hyperfiddle.electric.impl.yield2.recover);
+if((G__42487 == null)){
 return null;
 } else {
-return hyperfiddle.electric.impl.array_fields.get(G__29517,hyperfiddle.electric.impl.yield2.notified_QMARK_);
+return hyperfiddle.electric.impl.array_fields.get(G__42487,hyperfiddle.electric.impl.yield2.notified_QMARK_);
 }
 }
 })())){
 return null;
 } else {
-var fexpr__29518 = Y.notifier;
-return (fexpr__29518.cljs$core$IFn$_invoke$arity$0 ? fexpr__29518.cljs$core$IFn$_invoke$arity$0() : fexpr__29518.call(null));
+var fexpr__42488 = Y.notifier;
+return (fexpr__42488.cljs$core$IFn$_invoke$arity$0 ? fexpr__42488.cljs$core$IFn$_invoke$arity$0() : fexpr__42488.call(null));
 }
 });
 hyperfiddle.electric.impl.yield2.recover_notified = (function hyperfiddle$electric$impl$yield2$recover_notified(Y){
@@ -109,31 +109,31 @@ return hyperfiddle.electric.impl.array_fields.get(hyperfiddle.electric.impl.arra
 })())){
 return null;
 } else {
-var fexpr__29519 = Y.notifier;
-return (fexpr__29519.cljs$core$IFn$_invoke$arity$0 ? fexpr__29519.cljs$core$IFn$_invoke$arity$0() : fexpr__29519.call(null));
+var fexpr__42489 = Y.notifier;
+return (fexpr__42489.cljs$core$IFn$_invoke$arity$0 ? fexpr__42489.cljs$core$IFn$_invoke$arity$0() : fexpr__42489.call(null));
 }
 });
 hyperfiddle.electric.impl.yield2.terminated = (function hyperfiddle$electric$impl$yield2$terminated(Y){
 if((hyperfiddle.electric.impl.array_fields.swap.cljs$core$IFn$_invoke$arity$3(Y.state_,hyperfiddle.electric.impl.yield2.children,cljs.core.dec) === (0))){
-var fexpr__29520 = Y.terminator;
-return (fexpr__29520.cljs$core$IFn$_invoke$arity$0 ? fexpr__29520.cljs$core$IFn$_invoke$arity$0() : fexpr__29520.call(null));
+var fexpr__42490 = Y.terminator;
+return (fexpr__42490.cljs$core$IFn$_invoke$arity$0 ? fexpr__42490.cljs$core$IFn$_invoke$arity$0() : fexpr__42490.call(null));
 } else {
 return null;
 }
 });
 hyperfiddle.electric.impl.yield2.swallow = (function hyperfiddle$electric$impl$yield2$swallow(o){
 try{return cljs.core.deref(hyperfiddle.electric.impl.array_fields.get(o,hyperfiddle.electric.impl.yield2.iterator));
-}catch (e29521){var _ = e29521;
+}catch (e42491){var _ = e42491;
 return null;
 }});
 hyperfiddle.electric.impl.yield2.trash = (function hyperfiddle$electric$impl$yield2$trash(o){
-var arr29522_29571 = o;
-(arr29522_29571[hyperfiddle.electric.impl.yield2.on_notify] = cljs.core.identity((function (){
+var arr42492_42538 = o;
+(arr42492_42538[hyperfiddle.electric.impl.yield2.on_notify] = cljs.core.identity((function (){
 return hyperfiddle.electric.impl.yield2.swallow(o);
 })));
 
-var fexpr__29523_29572 = hyperfiddle.electric.impl.array_fields.get(o,hyperfiddle.electric.impl.yield2.iterator);
-(fexpr__29523_29572.cljs$core$IFn$_invoke$arity$0 ? fexpr__29523_29572.cljs$core$IFn$_invoke$arity$0() : fexpr__29523_29572.call(null));
+var fexpr__42493_42539 = hyperfiddle.electric.impl.array_fields.get(o,hyperfiddle.electric.impl.yield2.iterator);
+(fexpr__42493_42539.cljs$core$IFn$_invoke$arity$0 ? fexpr__42493_42539.cljs$core$IFn$_invoke$arity$0() : fexpr__42493_42539.call(null));
 
 if(cljs.core.truth_(hyperfiddle.electric.impl.array_fields.getset(o,hyperfiddle.electric.impl.yield2.notified_QMARK_,false))){
 return hyperfiddle.electric.impl.yield2.swallow(o);
@@ -142,8 +142,8 @@ return null;
 }
 });
 hyperfiddle.electric.impl.yield2.cancel = (function hyperfiddle$electric$impl$yield2$cancel(Y){
-var fexpr__29524_29573 = hyperfiddle.electric.impl.array_fields.get(hyperfiddle.electric.impl.array_fields.get(Y.state_,hyperfiddle.electric.impl.yield2.input),hyperfiddle.electric.impl.yield2.iterator);
-(fexpr__29524_29573.cljs$core$IFn$_invoke$arity$0 ? fexpr__29524_29573.cljs$core$IFn$_invoke$arity$0() : fexpr__29524_29573.call(null));
+var fexpr__42494_42540 = hyperfiddle.electric.impl.array_fields.get(hyperfiddle.electric.impl.array_fields.get(Y.state_,hyperfiddle.electric.impl.yield2.input),hyperfiddle.electric.impl.yield2.iterator);
+(fexpr__42494_42540.cljs$core$IFn$_invoke$arity$0 ? fexpr__42494_42540.cljs$core$IFn$_invoke$arity$0() : fexpr__42494_42540.call(null));
 
 var temp__5808__auto__ = hyperfiddle.electric.impl.array_fields.get(Y.state_,hyperfiddle.electric.impl.yield2.recover);
 if((temp__5808__auto__ == null)){
@@ -154,43 +154,43 @@ return hyperfiddle.electric.impl.yield2.trash(rec);
 }
 });
 hyperfiddle.electric.impl.yield2.create_recover = (function hyperfiddle$electric$impl$yield2$create_recover(Y,_GT_r){
-var temp__5808__auto___29574 = hyperfiddle.electric.impl.array_fields.get(Y.state_,hyperfiddle.electric.impl.yield2.recover);
-if((temp__5808__auto___29574 == null)){
+var temp__5808__auto___42541 = hyperfiddle.electric.impl.array_fields.get(Y.state_,hyperfiddle.electric.impl.yield2.recover);
+if((temp__5808__auto___42541 == null)){
 } else {
-var rec_29575 = temp__5808__auto___29574;
-hyperfiddle.electric.impl.yield2.trash(rec_29575);
+var rec_42542 = temp__5808__auto___42541;
+hyperfiddle.electric.impl.yield2.trash(rec_42542);
 }
 
 hyperfiddle.electric.impl.array_fields.swap.cljs$core$IFn$_invoke$arity$3(Y.state_,hyperfiddle.electric.impl.yield2.children,cljs.core.inc);
 
-var me = (function (){var arr29536 = Y.state_;
-return (arr29536[hyperfiddle.electric.impl.yield2.recover] = cljs.core.identity(cljs.core.object_array.cljs$core$IFn$_invoke$arity$1((3))));
+var me = (function (){var arr42495 = Y.state_;
+return (arr42495[hyperfiddle.electric.impl.yield2.recover] = cljs.core.identity(cljs.core.object_array.cljs$core$IFn$_invoke$arity$1((3))));
 })();
-var arr29537 = me;
-(arr29537[hyperfiddle.electric.impl.yield2.on_notify] = cljs.core.identity((function (){
-var arr29538 = me;
-return (arr29538[hyperfiddle.electric.impl.yield2.notified_QMARK_] = cljs.core.identity(true));
+var arr42496 = me;
+(arr42496[hyperfiddle.electric.impl.yield2.on_notify] = cljs.core.identity((function (){
+var arr42497 = me;
+return (arr42497[hyperfiddle.electric.impl.yield2.notified_QMARK_] = cljs.core.identity(true));
 })));
 
-return (arr29537[hyperfiddle.electric.impl.yield2.iterator] = cljs.core.identity((function (){var G__29539 = (function (){
-var fexpr__29541 = hyperfiddle.electric.impl.array_fields.get(me,hyperfiddle.electric.impl.yield2.on_notify);
-return (fexpr__29541.cljs$core$IFn$_invoke$arity$0 ? fexpr__29541.cljs$core$IFn$_invoke$arity$0() : fexpr__29541.call(null));
+return (arr42496[hyperfiddle.electric.impl.yield2.iterator] = cljs.core.identity((function (){var G__42502 = (function (){
+var fexpr__42504 = hyperfiddle.electric.impl.array_fields.get(me,hyperfiddle.electric.impl.yield2.on_notify);
+return (fexpr__42504.cljs$core$IFn$_invoke$arity$0 ? fexpr__42504.cljs$core$IFn$_invoke$arity$0() : fexpr__42504.call(null));
 });
-var G__29540 = (function (){
+var G__42503 = (function (){
 return hyperfiddle.electric.impl.yield2.terminated(Y);
 });
-return (_GT_r.cljs$core$IFn$_invoke$arity$2 ? _GT_r.cljs$core$IFn$_invoke$arity$2(G__29539,G__29540) : _GT_r.call(null,G__29539,G__29540));
+return (_GT_r.cljs$core$IFn$_invoke$arity$2 ? _GT_r.cljs$core$IFn$_invoke$arity$2(G__42502,G__42503) : _GT_r.call(null,G__42502,G__42503));
 })()));
 });
 hyperfiddle.electric.impl.yield2.transfer_loop = (function hyperfiddle$electric$impl$yield2$transfer_loop(o){
 while(true){
-var arr29543_29576 = o;
-(arr29543_29576[hyperfiddle.electric.impl.yield2.notified_QMARK_] = cljs.core.identity(false));
+var arr42506_42545 = o;
+(arr42506_42545[hyperfiddle.electric.impl.yield2.notified_QMARK_] = cljs.core.identity(false));
 
 var v = cljs.core.deref(hyperfiddle.electric.impl.array_fields.get(o,hyperfiddle.electric.impl.yield2.iterator));
 if(cljs.core.truth_(hyperfiddle.electric.impl.array_fields.get(o,hyperfiddle.electric.impl.yield2.notified_QMARK_))){
-var G__29577 = o;
-o = G__29577;
+var G__42546 = o;
+o = G__42546;
 continue;
 } else {
 return v;
@@ -199,17 +199,17 @@ break;
 }
 });
 hyperfiddle.electric.impl.yield2.transfer_recover = (function hyperfiddle$electric$impl$yield2$transfer_recover(Y){
-var arr29545 = Y.state_;
-return (arr29545[hyperfiddle.electric.impl.yield2.last_out] = cljs.core.identity(hyperfiddle.electric.impl.yield2.transfer_loop(hyperfiddle.electric.impl.array_fields.get(Y.state_,hyperfiddle.electric.impl.yield2.recover))));
+var arr42510 = Y.state_;
+return (arr42510[hyperfiddle.electric.impl.yield2.last_out] = cljs.core.identity(hyperfiddle.electric.impl.yield2.transfer_loop(hyperfiddle.electric.impl.array_fields.get(Y.state_,hyperfiddle.electric.impl.yield2.recover))));
 });
 hyperfiddle.electric.impl.yield2.transfer_input = (function hyperfiddle$electric$impl$yield2$transfer_input(Y){
 var in$ = hyperfiddle.electric.impl.yield2.transfer_loop(hyperfiddle.electric.impl.array_fields.get(Y.state_,hyperfiddle.electric.impl.yield2.input));
 if(cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(in$,hyperfiddle.electric.impl.array_fields.get(Y.state_,hyperfiddle.electric.impl.yield2.last_in))){
-if(cljs.core.truth_((function (){var G__29549 = hyperfiddle.electric.impl.array_fields.get(Y.state_,hyperfiddle.electric.impl.yield2.recover);
-if((G__29549 == null)){
+if(cljs.core.truth_((function (){var G__42514 = hyperfiddle.electric.impl.array_fields.get(Y.state_,hyperfiddle.electric.impl.yield2.recover);
+if((G__42514 == null)){
 return null;
 } else {
-return hyperfiddle.electric.impl.array_fields.get(G__29549,hyperfiddle.electric.impl.yield2.notified_QMARK_);
+return hyperfiddle.electric.impl.array_fields.get(G__42514,hyperfiddle.electric.impl.yield2.notified_QMARK_);
 }
 })())){
 return hyperfiddle.electric.impl.yield2.transfer_recover(Y);
@@ -217,18 +217,18 @@ return hyperfiddle.electric.impl.yield2.transfer_recover(Y);
 return hyperfiddle.electric.impl.array_fields.get(Y.state_,hyperfiddle.electric.impl.yield2.last_out);
 }
 } else {
-var temp__5806__auto__ = (function (){var fexpr__29550 = Y.checker;
-return (fexpr__29550.cljs$core$IFn$_invoke$arity$1 ? fexpr__29550.cljs$core$IFn$_invoke$arity$1(in$) : fexpr__29550.call(null,in$));
+var temp__5806__auto__ = (function (){var fexpr__42515 = Y.checker;
+return (fexpr__42515.cljs$core$IFn$_invoke$arity$1 ? fexpr__42515.cljs$core$IFn$_invoke$arity$1(in$) : fexpr__42515.call(null,in$));
 })();
 if((temp__5806__auto__ == null)){
-var arr29551_29578 = Y.state_;
-(arr29551_29578[hyperfiddle.electric.impl.yield2.last_in] = cljs.core.identity(new cljs.core.Keyword("hyperfiddle.electric.impl.yield2","none","hyperfiddle.electric.impl.yield2/none",934748982)));
+var arr42516_42547 = Y.state_;
+(arr42516_42547[hyperfiddle.electric.impl.yield2.last_in] = cljs.core.identity(new cljs.core.Keyword("hyperfiddle.electric.impl.yield2","none","hyperfiddle.electric.impl.yield2/none",934748982)));
 
-var temp__5808__auto___29579 = hyperfiddle.electric.impl.array_fields.get(Y.state_,hyperfiddle.electric.impl.yield2.recover);
-if((temp__5808__auto___29579 == null)){
+var temp__5808__auto___42548 = hyperfiddle.electric.impl.array_fields.get(Y.state_,hyperfiddle.electric.impl.yield2.recover);
+if((temp__5808__auto___42548 == null)){
 } else {
-var rec_29580 = temp__5808__auto___29579;
-hyperfiddle.electric.impl.yield2.trash(rec_29580);
+var rec_42549 = temp__5808__auto___42548;
+hyperfiddle.electric.impl.yield2.trash(rec_42549);
 }
 
 return in$;
@@ -240,15 +240,15 @@ hyperfiddle.electric.impl.yield2.create_recover(Y,_GT_recover);
 return hyperfiddle.electric.impl.yield2.transfer_recover(Y);
 })()
 ;
-var arr29554_29581 = hyperfiddle.electric.impl.array_fields.get(Y.state_,hyperfiddle.electric.impl.yield2.recover);
-(arr29554_29581[hyperfiddle.electric.impl.yield2.on_notify] = cljs.core.identity((function (){
+var arr42518_42550 = hyperfiddle.electric.impl.array_fields.get(Y.state_,hyperfiddle.electric.impl.yield2.recover);
+(arr42518_42550[hyperfiddle.electric.impl.yield2.on_notify] = cljs.core.identity((function (){
 return hyperfiddle.electric.impl.yield2.recover_notified(Y);
 })));
 
-var arr29555 = Y.state_;
-(arr29555[hyperfiddle.electric.impl.yield2.last_in] = cljs.core.identity(in$));
+var arr42519 = Y.state_;
+(arr42519[hyperfiddle.electric.impl.yield2.last_in] = cljs.core.identity(in$));
 
-return (arr29555[hyperfiddle.electric.impl.yield2.last_out] = cljs.core.identity(out));
+return (arr42519[hyperfiddle.electric.impl.yield2.last_out] = cljs.core.identity(out));
 }
 }
 });
@@ -265,14 +265,14 @@ throw cljs.core.ex_info.cljs$core$IFn$_invoke$arity$2("You cannot transfer a val
 
 }
 }
-}catch (e29556){var e = e29556;
+}catch (e42521){var e = e42521;
 hyperfiddle.electric.impl.yield2.trash(hyperfiddle.electric.impl.array_fields.get(Y.state_,hyperfiddle.electric.impl.yield2.input));
 
-var temp__5808__auto___29583 = hyperfiddle.electric.impl.array_fields.get(Y.state_,hyperfiddle.electric.impl.yield2.recover);
-if((temp__5808__auto___29583 == null)){
+var temp__5808__auto___42552 = hyperfiddle.electric.impl.array_fields.get(Y.state_,hyperfiddle.electric.impl.yield2.recover);
+if((temp__5808__auto___42552 == null)){
 } else {
-var rec_29584 = temp__5808__auto___29583;
-hyperfiddle.electric.impl.yield2.trash(rec_29584);
+var rec_42553 = temp__5808__auto___42552;
+hyperfiddle.electric.impl.yield2.trash(rec_42553);
 }
 
 throw e;
@@ -281,26 +281,26 @@ throw e;
 hyperfiddle.electric.impl.yield2.yield$ = (function hyperfiddle$electric$impl$yield2$yield(checker,_GT_input){
 return (function (n,t){
 var Y = hyperfiddle.electric.impl.yield2.__GT_Yield(checker,n,t,cljs.core.object_array.cljs$core$IFn$_invoke$arity$1((5)));
-var me = (function (){var arr29559 = Y.state_;
-(arr29559[hyperfiddle.electric.impl.yield2.children] = cljs.core.identity((1)));
+var me = (function (){var arr42525 = Y.state_;
+(arr42525[hyperfiddle.electric.impl.yield2.children] = cljs.core.identity((1)));
 
-(arr29559[hyperfiddle.electric.impl.yield2.last_in] = cljs.core.identity(new cljs.core.Keyword("hyperfiddle.electric.impl.yield2","none","hyperfiddle.electric.impl.yield2/none",934748982)));
+(arr42525[hyperfiddle.electric.impl.yield2.last_in] = cljs.core.identity(new cljs.core.Keyword("hyperfiddle.electric.impl.yield2","none","hyperfiddle.electric.impl.yield2/none",934748982)));
 
-return (arr29559[hyperfiddle.electric.impl.yield2.input] = cljs.core.identity(cljs.core.object_array.cljs$core$IFn$_invoke$arity$1((3))));
+return (arr42525[hyperfiddle.electric.impl.yield2.input] = cljs.core.identity(cljs.core.object_array.cljs$core$IFn$_invoke$arity$1((3))));
 })();
-var arr29560_29586 = me;
-(arr29560_29586[hyperfiddle.electric.impl.yield2.on_notify] = cljs.core.identity((function (){
+var arr42528_42554 = me;
+(arr42528_42554[hyperfiddle.electric.impl.yield2.on_notify] = cljs.core.identity((function (){
 return hyperfiddle.electric.impl.yield2.input_notified(Y);
 })));
 
-(arr29560_29586[hyperfiddle.electric.impl.yield2.iterator] = cljs.core.identity((function (){var G__29561 = (function (){
-var fexpr__29564 = hyperfiddle.electric.impl.array_fields.get(me,hyperfiddle.electric.impl.yield2.on_notify);
-return (fexpr__29564.cljs$core$IFn$_invoke$arity$0 ? fexpr__29564.cljs$core$IFn$_invoke$arity$0() : fexpr__29564.call(null));
+(arr42528_42554[hyperfiddle.electric.impl.yield2.iterator] = cljs.core.identity((function (){var G__42529 = (function (){
+var fexpr__42531 = hyperfiddle.electric.impl.array_fields.get(me,hyperfiddle.electric.impl.yield2.on_notify);
+return (fexpr__42531.cljs$core$IFn$_invoke$arity$0 ? fexpr__42531.cljs$core$IFn$_invoke$arity$0() : fexpr__42531.call(null));
 });
-var G__29562 = (function (){
+var G__42530 = (function (){
 return hyperfiddle.electric.impl.yield2.terminated(Y);
 });
-return (_GT_input.cljs$core$IFn$_invoke$arity$2 ? _GT_input.cljs$core$IFn$_invoke$arity$2(G__29561,G__29562) : _GT_input.call(null,G__29561,G__29562));
+return (_GT_input.cljs$core$IFn$_invoke$arity$2 ? _GT_input.cljs$core$IFn$_invoke$arity$2(G__42529,G__42530) : _GT_input.call(null,G__42529,G__42530));
 })()));
 
 return Y;

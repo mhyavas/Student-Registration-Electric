@@ -11,14 +11,14 @@ return cljs.core.List.EMPTY;
 });
 hyperfiddle.electric_dom2.unsupported = (function hyperfiddle$electric_dom2$unsupported(var_args){
 var args__5775__auto__ = [];
-var len__5769__auto___33755 = arguments.length;
-var i__5770__auto___33756 = (0);
+var len__5769__auto___49699 = arguments.length;
+var i__5770__auto___49700 = (0);
 while(true){
-if((i__5770__auto___33756 < len__5769__auto___33755)){
-args__5775__auto__.push((arguments[i__5770__auto___33756]));
+if((i__5770__auto___49700 < len__5769__auto___49699)){
+args__5775__auto__.push((arguments[i__5770__auto___49700]));
 
-var G__33757 = (i__5770__auto___33756 + (1));
-i__5770__auto___33756 = G__33757;
+var G__49701 = (i__5770__auto___49700 + (1));
+i__5770__auto___49700 = G__49701;
 continue;
 } else {
 }
@@ -36,9 +36,9 @@ throw cljs.core.ex_info.cljs$core$IFn$_invoke$arity$2("Not available on this pee
 (hyperfiddle.electric_dom2.unsupported.cljs$lang$maxFixedArity = (0));
 
 /** @this {Function} */
-(hyperfiddle.electric_dom2.unsupported.cljs$lang$applyTo = (function (seq33734){
+(hyperfiddle.electric_dom2.unsupported.cljs$lang$applyTo = (function (seq49676){
 var self__5755__auto__ = this;
-return self__5755__auto__.cljs$core$IFn$_invoke$arity$variadic(cljs.core.seq(seq33734));
+return self__5755__auto__.cljs$core$IFn$_invoke$arity$variadic(cljs.core.seq(seq49676));
 }));
 
 /**
@@ -47,11 +47,11 @@ return self__5755__auto__.cljs$core$IFn$_invoke$arity$variadic(cljs.core.seq(seq
 hyperfiddle.electric_dom2.hook = (function() {
 var hyperfiddle$electric_dom2$hook = null;
 var hyperfiddle$electric_dom2$hook__1 = (function (x){
-var G__33735 = x.parentNode;
-if((G__33735 == null)){
+var G__49677 = x.parentNode;
+if((G__49677 == null)){
 return null;
 } else {
-return G__33735.removeChild(x);
+return G__49677.removeChild(x);
 }
 });
 var hyperfiddle$electric_dom2$hook__2 = (function (x,y){
@@ -75,9 +75,9 @@ hyperfiddle.electric_dom2.by_id = (function hyperfiddle$electric_dom2$by_id(id){
 return document.getElementById(id);
 });
 hyperfiddle.electric_dom2.new_node = (function hyperfiddle$electric_dom2$new_node(parent,type){
-var el = (function (){var G__33736 = type;
-var G__33736__$1 = (((G__33736 instanceof cljs.core.Keyword))?G__33736.fqn:null);
-switch (G__33736__$1) {
+var el = (function (){var G__49678 = type;
+var G__49678__$1 = (((G__49678 instanceof cljs.core.Keyword))?G__49678.fqn:null);
+switch (G__49678__$1) {
 case "comment":
 return document.createComment("");
 
@@ -128,8 +128,8 @@ return new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMP
 }
 });
 hyperfiddle.electric_dom2.set_attribute_ns = (function hyperfiddle$electric_dom2$set_attribute_ns(var_args){
-var G__33738 = arguments.length;
-switch (G__33738) {
+var G__49680 = arguments.length;
+switch (G__49680) {
 case 3:
 return hyperfiddle.electric_dom2.set_attribute_ns.cljs$core$IFn$_invoke$arity$3((arguments[(0)]),(arguments[(1)]),(arguments[(2)]));
 
@@ -145,9 +145,9 @@ throw (new Error(["Invalid arity: ",cljs.core.str.cljs$core$IFn$_invoke$arity$1(
 });
 
 (hyperfiddle.electric_dom2.set_attribute_ns.cljs$core$IFn$_invoke$arity$3 = (function (node,attr,v){
-var vec__33739 = hyperfiddle.electric_dom2.resolve_attr_alias(attr);
-var ns = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__33739,(0),null);
-var attr__$1 = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__33739,(1),null);
+var vec__49681 = hyperfiddle.electric_dom2.resolve_attr_alias(attr);
+var ns = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__49681,(0),null);
+var attr__$1 = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__49681,(1),null);
 return hyperfiddle.electric_dom2.set_attribute_ns.cljs$core$IFn$_invoke$arity$4(node,ns,attr__$1,v);
 }));
 
@@ -158,8 +158,8 @@ return node.setAttributeNS(ns,attr,v);
 (hyperfiddle.electric_dom2.set_attribute_ns.cljs$lang$maxFixedArity = 4);
 
 hyperfiddle.electric_dom2.set_property_BANG_ = (function hyperfiddle$electric_dom2$set_property_BANG_(var_args){
-var G__33743 = arguments.length;
-switch (G__33743) {
+var G__49685 = arguments.length;
+switch (G__49685) {
 case 3:
 return hyperfiddle.electric_dom2.set_property_BANG_.cljs$core$IFn$_invoke$arity$3((arguments[(0)]),(arguments[(1)]),(arguments[(2)]));
 
@@ -190,8 +190,8 @@ return and__5043__auto__;
 })())){
 return node.removeAttributeNS(null,k__$1);
 } else {
-var G__33744 = k__$1;
-switch (G__33744) {
+var G__49686 = k__$1;
+switch (G__49686) {
 case "style":
 return goog.style.setStyle(node,v__$1);
 
@@ -236,12 +236,27 @@ return hyperfiddle.electric_dom2.set_property_BANG_.cljs$core$IFn$_invoke$arity$
 });
 }));
 });
-hyperfiddle.electric_dom2.listen = hyperfiddle.electric._listen;
-hyperfiddle.electric_dom2.event_STAR_ = hyperfiddle.electric.event_STAR_;
+hyperfiddle.electric_dom2.listen = (function hyperfiddle$electric_dom2$listen(node,typ,f,opts){
+node.addEventListener(typ,f,opts);
+
+return (function (){
+return node.removeEventListener(typ,f);
+});
+});
+hyperfiddle.electric_dom2.event_STAR_ = (function hyperfiddle$electric_dom2$event_STAR_(node,typ,f,opts){
+return missionary.core.relieve(cljs.core.PersistentArrayMap.EMPTY,missionary.core.observe((function (_BANG_){
+(_BANG_.cljs$core$IFn$_invoke$arity$1 ? _BANG_.cljs$core$IFn$_invoke$arity$1(null) : _BANG_.call(null,null));
+
+return hyperfiddle.electric_dom2.listen(node,typ,(function (p1__49689_SHARP_){
+var G__49690 = (f.cljs$core$IFn$_invoke$arity$1 ? f.cljs$core$IFn$_invoke$arity$1(p1__49689_SHARP_) : f.call(null,p1__49689_SHARP_));
+return (_BANG_.cljs$core$IFn$_invoke$arity$1 ? _BANG_.cljs$core$IFn$_invoke$arity$1(G__49690) : _BANG_.call(null,G__49690));
+}),cljs.core.clj__GT_js(opts));
+})));
+});
 hyperfiddle.electric_dom2.happen = (function hyperfiddle$electric_dom2$happen(s,e){
-var G__33747 = new cljs.core.Keyword(null,"status","status",-1997798413).cljs$core$IFn$_invoke$arity$1(s);
-var G__33747__$1 = (((G__33747 instanceof cljs.core.Keyword))?G__33747.fqn:null);
-switch (G__33747__$1) {
+var G__49691 = new cljs.core.Keyword(null,"status","status",-1997798413).cljs$core$IFn$_invoke$arity$1(s);
+var G__49691__$1 = (((G__49691 instanceof cljs.core.Keyword))?G__49691.fqn:null);
+switch (G__49691__$1) {
 case "idle":
 return new cljs.core.PersistentArrayMap(null, 2, [new cljs.core.Keyword(null,"status","status",-1997798413),new cljs.core.Keyword(null,"impulse","impulse",486537698),new cljs.core.Keyword(null,"event","event",301435442),e], null);
 
@@ -256,7 +271,7 @@ throw (new Error(["Assert failed: ","two events in the same frame? that's weird 
 
 break;
 default:
-throw (new Error(["No matching clause: ",cljs.core.str.cljs$core$IFn$_invoke$arity$1(G__33747__$1)].join('')));
+throw (new Error(["No matching clause: ",cljs.core.str.cljs$core$IFn$_invoke$arity$1(G__49691__$1)].join('')));
 
 }
 });

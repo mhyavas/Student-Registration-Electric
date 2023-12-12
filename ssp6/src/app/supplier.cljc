@@ -53,7 +53,8 @@
                             :buttons {:delete false
                                       :edit false
                                       :create false
-                                      :message ""}}))
+                                      :message ""}
+                            :admin-company-detail {:click false :company ""}}))
 
 (defn set-supplier [name]
   (swap! !state-supplier assoc-in [:selected-supplier] name))
@@ -261,18 +262,22 @@
                                [?p :password/password ?password]]
                              db company)))))))
 
-#?(:cljs (defn admin-user-table [data]
+
+
+#?(:cljs (defn admin-user-table [[data company]]
            [:> DataTable {:allowRowEvents       true
                           :selectableRows       true
+                          :pagination true
                           :onSelectedRowsChange (fn [v] (swap! !state-supplier assoc-in [:admin-user-selection] (js->clj (.-selectedRows v))))
-                          :columns              [{:name :User :sortable true :selector (fn [row] (.-user row))}
-                                                 {:name :Password :selector  (fn [row] (.-password row))}
+                          :columns              [
+                                                 {:name :User :sortable true :selector (fn [row] (.-user row))}
+                                                 {:name :Password :selector (fn [row] (.-password row))}
                                                  {:name :Admin :sortable true :selector (fn [row] (str (.-admin row)))}]
                           :data                 data}]))
 #?(:cljs (defn reactive-btn [action]
            (case action
              "Delete" [:> ReactiveButton {:color "red" :idleText "Delete" :onClick (fn [] (swap! !state-supplier assoc-in [:buttons :delete] true))}]
-             "Edit"   [:> ReactiveButton {:color "yellow" :idleText "Edit" :onClick (fn [] (swap! !state-supplier assoc-in [:buttons :edit] true))}]
+             "Edit" [:> ReactiveButton {:color "yellow" :idleText "Edit" :onClick (fn [] (swap! !state-supplier assoc-in [:buttons :edit] true))}]
              "Create" [:> ReactiveButton {:color "green" :idleText "Create" :onClick (fn [] (swap! !state-supplier assoc-in [:buttons :create] true))}])))
 
 
@@ -323,15 +328,21 @@
 
 
               (dom/text m)))))
-#?(:cljs (defn proposal-table-edit [data]
+#?(:cljs (defn proposal-table-edit [[data]]
            [:> DataTable {:allowRowEvents true
                           :selectableRows true
+                          :pagination true
                           :onRowClicked   (fn [v] (swap! !state-supplier assoc-in [:clicker :proposal :title] (.-title v))
                                             (swap! !state-supplier assoc-in [:clicker :proposal :click] true))
-                          :columns [{:name :Title :selector (fn [row] (.-title row))}
-                                    {:name :Price :selector (fn [row] (.-price row))}
-                                    {:name :Date :selector (fn [row] (.-timestamp row))}
-                                    {:name :Customer :selector (fn [row] (.-customer row))}] :data data}]))
+                          :columns [{:name :Title :sortable true :selector (fn [row] (.-title row))}
+                                    {:name :Price :sortable true :selector (fn [row] (.-price row))}
+                                    {:name :Date :sortable true :selector (fn [row] (.-timestamp row))}
+                                    {:name :Customer :button true :ignoreRowClick true :cell (fn [v]
+                                                                                               (println v)
+                                                                                               (r/as-element
+                                                                                                 [:a {:href    "#"
+                                                                                                      :onClick (fn [] (swap! !state-supplier assoc-in [:admin-company-detail] {:click true :company (.-customer v)}))}
+                                                                                                  (.-customer v)]))}] :data data}]))
 
 (e/defn ProposalEdit [m]
         (e/client (dom/text m)))
@@ -350,14 +361,17 @@
                         (history/navigate! history/!history [:app.main/supplier-admin-edit [(:admin-user-selection state) company]]))))
                   (if (:create (:buttons state))
                     (history/navigate! history/!history [:app.main/supplier-create-author company]))
+                  (if (:click (:admin-company-detail state))
+                    (history/navigate! history/!history [:app.main/customer-detail-page (:company (:admin-company-detail state))]))
 
 
                   (dom/text (:message (:buttons state)))
+                  (dom/text (:admin-company-detail state))
                   (dom/h3 (dom/text "Total registered user: " (e/server (ffirst (dt/q '[:find (count ?e)
                                                                                         :in $ ?company
                                                                                         :where [?c :supplier/name ?company]
                                                                                         [?e :author/company ?c]] db company)))))
-                  (with-reagent admin-user-table (clj->js (e/server (admin-user-data db company))))
+                  (with-reagent admin-user-table (clj->js (e/server [(admin-user-data db company) company])))
                   (dom/ul (dom/props {:background-color "white"})
                     (dom/li (with-reagent reactive-btn "Delete"))
                     (dom/li (with-reagent reactive-btn "Edit"))
@@ -365,7 +379,7 @@
 
                   (dom/div
                     (dom/h3 (dom/text  "Proposal Edit:"))
-                    (with-reagent proposal-table-edit (clj->js (e/server (proposal-data db company)))))))))))
+                    (with-reagent proposal-table-edit (clj->js (e/server [(proposal-data db company)]))))))))))
 
 
 

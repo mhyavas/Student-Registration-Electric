@@ -1,0 +1,9 @@
+{
+"version":3,
+"file":"shadow.js.shim.module$react_offcanvas$default.js",
+"lineCount":3,
+"mappings":"AAAAA,IAAKC,CAAAA,OAAL,CAAa,+CAAb,CAAA;AACAC,MAAOC,CAAAA,EAAGC,CAAAA,IAAKC,CAAAA,8BAAf,GAAgDH,MAAOC,CAAAA,EAAGG,CAAAA,OAAV,CAAkB,+CAAlB,EAAmE,EAAnE,CAAA,CAAuE,SAAvE,CAAhD;;",
+"sources":["shadow.js.shim.module$react_offcanvas$default.js"],
+"sourcesContent":["goog.provide(\"shadow.js.shim.module$react_offcanvas$default\");\nshadow.js.shim.module$react_offcanvas$default = shadow.js.require(\"module$node_modules$react_offcanvas$lib$index\", {})[\"default\"];\n"],
+"names":["goog","provide","shadow","js","shim","module$react_offcanvas$default","require"]
+}

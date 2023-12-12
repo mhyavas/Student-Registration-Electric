@@ -13,11 +13,11 @@ this.state = state;
 this.cljs$lang$protocol_mask$partition0$ = 32769;
 this.cljs$lang$protocol_mask$partition1$ = 0;
 });
-(hyperfiddle.electric.impl.eventually.It.prototype.call = (function (unused__13656__auto__){
+(hyperfiddle.electric.impl.eventually.It.prototype.call = (function (unused__27532__auto__){
 var self__ = this;
 var self__ = this;
-var G__29047 = (arguments.length - (1));
-switch (G__29047) {
+var G__45609 = (arguments.length - (1));
+switch (G__45609) {
 case (0):
 return self__.cljs$core$IFn$_invoke$arity$0();
 
@@ -28,17 +28,17 @@ throw (new Error(["Invalid arity: ",cljs.core.str.cljs$core$IFn$_invoke$arity$1(
 }
 }));
 
-(hyperfiddle.electric.impl.eventually.It.prototype.apply = (function (self__,args29043){
+(hyperfiddle.electric.impl.eventually.It.prototype.apply = (function (self__,args45608){
 var self__ = this;
 var self____$1 = this;
-return self____$1.call.apply(self____$1,[self____$1].concat(cljs.core.aclone(args29043)));
+return self____$1.call.apply(self____$1,[self____$1].concat(cljs.core.aclone(args45608)));
 }));
 
 (hyperfiddle.electric.impl.eventually.It.prototype.cljs$core$IFn$_invoke$arity$0 = (function (){
 var self__ = this;
 var _ = this;
-var fexpr__29050 = (self__.state[((0) | (0))]);
-return (fexpr__29050.cljs$core$IFn$_invoke$arity$0 ? fexpr__29050.cljs$core$IFn$_invoke$arity$0() : fexpr__29050.call(null));
+var fexpr__45610 = (self__.state[((0) | (0))]);
+return (fexpr__45610.cljs$core$IFn$_invoke$arity$0 ? fexpr__45610.cljs$core$IFn$_invoke$arity$0() : fexpr__45610.call(null));
 }));
 
 (hyperfiddle.electric.impl.eventually.It.prototype.cljs$core$IDeref$_deref$arity$1 = (function (it){
@@ -61,7 +61,7 @@ if(((self__.state[((1) | (0))]) == null)){
 }
 
 return x;
-}catch (e29055){var e = e29055;
+}catch (e45611){var e = e45611;
 if(((self__.state[((1) | (0))]) == null)){
 (self__.state[((1) | (0))] = self__.terminator);
 } else {
@@ -103,8 +103,8 @@ var state = cljs.core.object_array.cljs$core$IFn$_invoke$arity$1((2));
 var it = hyperfiddle.electric.impl.eventually.__GT_It(x,n,t,state);
 (state[((1) | (0))] = n);
 
-(state[((0) | (0))] = (function (){var G__29071 = n;
-var G__29072 = (function (){
+(state[((0) | (0))] = (function (){var G__45616 = n;
+var G__45617 = (function (){
 var temp__5806__auto__ = (state[((1) | (0))]);
 if((temp__5806__auto__ == null)){
 return (state[((1) | (0))] = it);
@@ -115,7 +115,7 @@ var cb = temp__5806__auto__;
 return (cb.cljs$core$IFn$_invoke$arity$0 ? cb.cljs$core$IFn$_invoke$arity$0() : cb.call(null));
 }
 });
-return (f.cljs$core$IFn$_invoke$arity$2 ? f.cljs$core$IFn$_invoke$arity$2(G__29071,G__29072) : f.call(null,G__29071,G__29072));
+return (f.cljs$core$IFn$_invoke$arity$2 ? f.cljs$core$IFn$_invoke$arity$2(G__45616,G__45617) : f.call(null,G__45616,G__45617));
 })());
 
 return it;

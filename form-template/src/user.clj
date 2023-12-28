@@ -1,5 +1,12 @@
-(ns user) ; Must be ".clj" file, Clojure doesn't auto-load user.cljc
+(ns user
+  (:require
+    datomic.client.api
+    datomic.client.api.async
+    hyperfiddle.rcf)) ; Must be ".clj" file, Clojure doesn't auto-load user.cljc
 
+
+(def datomic-client)
+(def datomic-conn)
 ; lazy load dev stuff - for faster REPL startup and cleaner dev classpath
 (def start-electric-server! (delay @(requiring-resolve 'app.electric-server-java8-jetty9/start-server!)))
 (def shadow-start! (delay @(requiring-resolve 'shadow.cljs.devtools.server/start!)))
@@ -14,7 +21,14 @@
   (@shadow-watch :dev) ; depends on shadow server
   ; Shadow loads app.todo-list here, such that it shares memory with server.
   (def server (@start-electric-server! electric-server-config))
-  (comment (.stop server)))
+  (comment (.stop server))
+  (alter-var-root #'datomic-client (constantly (datomic.client.api/client {:server-type :dev-local :storage-dir "C:\\Users\\amibroker\\Desktop\\clj-study\\study-electric\\form-template\\form-db" :system "ci"})))
+  (alter-var-root #'datomic-conn (constantly (datomic.client.api/connect datomic-client {:db-name "form"})))
+  (def db (datomic.client.api.async/db datomic-conn))
+  (hyperfiddle.rcf/enable!))
+
+
+
 
 ; Server-side Electric userland code is lazy loaded by the shadow build.
 ; WARNING: make sure your REPL and shadow-cljs are sharing the same JVM!

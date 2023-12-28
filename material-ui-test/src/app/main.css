@@ -40,6 +40,7 @@ body {
   width: 78px;
   color: rgba(56,56,56,1);
   position: absolute;
+
   top: 264px;
   left: 102px;
   font-family: Inter;
@@ -98,7 +99,7 @@ body {
 }
 .v2_13 {
   width: 82px;
-  color: rgba(255,255,255,1);
+  color: rgba(0,94,162,1);
   position: absolute;
   top: 9px;
   left: 111px;

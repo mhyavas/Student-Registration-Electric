@@ -10,6 +10,12 @@
         org.clojure/tools.logging {:mvn/version "1.2.4"}
         ch.qos.logback/logback-classic {:mvn/version "1.2.11"}
         datascript/datascript {:mvn/version "1.5.2"}
+        reagent/reagent {:mvn/version "1.2.0"}
+        cljsjs/react                {:mvn/version "18.2.0-1"}
+        cljsjs/react-dom            {:mvn/version "18.2.0-1"}
+        arttuka/reagent-material-ui {:mvn/version "5.11.12-0" :exclusions [arttuka/reagent-material-ui-js]}
+        cljsjs/material-ui {:mvn/version  "0.19.0-0"}
+        reagent-material-ui/reagent-material-ui {:mvn/version "0.2.5"}
         ring-basic-authentication/ring-basic-authentication {:mvn/version "1.1.1"}}
  :mvn/repos {"cognitect-dev-tools"
              {:url "https://dev-tools.cognitect.com/maven/releases/"}}

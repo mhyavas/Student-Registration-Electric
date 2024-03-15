@@ -13,6 +13,7 @@
             [hyperfiddle.electric-dom2 :as dom]
             [hyperfiddle.history :as history]
             [missionary.core :as m]
+            #?(:clj [ring.util.response :as res])
             #?(:clj [datomic.client.api :as dt])
             #?(:cljs ["react" :as react])
             #?(:cljs ["slate" :refer [createEditor]])
@@ -81,6 +82,7 @@
                                     :report-page-button false}}))
 
 
+
 (defn set-username! [name]
   (swap! !state-project assoc-in [:login-credentials :user-name] name))
 
@@ -121,6 +123,7 @@
                          (dom/th (dom/text "Name"))
                          (e/for [value (e/server (dt/q '[:find (pull ?e [*])
                                                          :where [?e :customer/id _]] (dt/db conn)))]
+
                                 (dom/tr
                                   (dom/td (history/link [:app.main/customer-user-select (:customer/name (first value))] (dom/text (:customer/name (first value)))))))))))))))))
 
@@ -134,8 +137,8 @@
                 (let [login (:login-credentials state)]
                   (swap! !state-project assoc-in [:selected-company] company)
                   (if (< 0 (count (:selected-user state)))
-                    (dom/div
-                      (do (history/navigate! history/!history [:app.main/customer-projects (:selected-company state)])))
+                    #_(dom/div
+                        (do (history/navigate! history/!history [:app.main/customer-projects (:selected-company state)])))
 
                     (dom/div
                       (dom/h2 (dom/text "User Login:"))
@@ -161,6 +164,7 @@
                                                                                                                                                                    :where [?e :author/name ?name]
                                                                                                                                                                        [?e :author/company ?company]] (dt/db conn) (:user-name login) (ffirst (dt/q '[:find ?e :in $ ?company :where [?e :customer/name ?company]] (dt/db conn) company)))))))
                                                             (e/client
+                                                              (set! (.-cookie js/document) {:customer true :supplier false :admin false :user (:user-name login) :company (:selected-company state)})
                                                               (history/navigate! history/!history [:app.main/customer-projects (:selected-company state)])
                                                               (swap! !state-project assoc-in [:selected-user] (:user-name login)))
                                                             (e/client (swap! !state-project assoc-in [:login-credentials :login-message] "Wrong password!")))))))) (dom/text "Login")))))))))))
@@ -293,6 +297,7 @@
         (e/server
           (binding [conn @(requiring-resolve 'user/datomic-conn)]
             (e/client
+              (dom/text (:customer (e/server (clojure.edn/read-string (get-in e/*http-request* [:headers "cookie"])))))
               (dom/h2 (dom/text "Creating a Project for " name))
               (dom/div
                 (let [state (e/watch !state-project)]
@@ -349,6 +354,11 @@
           (binding [conn @(requiring-resolve 'user/datomic-conn)]
             (binding [db (dt/db conn)]
               (e/client
+                (if (nil? (e/server (get-in e/*http-request* [:headers "cookie"])))
+                  (.reload js/window.location))
+                (if (:customer (e/server (clojure.edn/read-string (get-in e/*http-request* [:headers "cookie"]))))
+                  nil
+                  (history/navigate! history/!history [:app.main/customer-page]))
                 (let [state (e/watch !state-project)]
                   (if (:click (:project (:clicker state)))
                     (history/navigate! history/!history [:app.main/customer-project-detail (e/server (ffirst (dt/q '[:find (pull ?e [*])
@@ -411,6 +421,7 @@
         (e/server
           (binding [conn @(requiring-resolve 'user/datomic-conn)]
            (e/client
+             (dom/text (e/server (get-in e/*http-request* [:headers])))
              (dom/div
                (let [state (e/watch !state-project)]
                  (let [auth (:author state)]

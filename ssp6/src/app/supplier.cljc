@@ -168,17 +168,23 @@
 
 
 #?(:cljs (defn proposal-table [data]
-           [:> DataTable {:allowRowEvents true
-                          :onRowClicked   (fn [v] (swap! !state-supplier assoc-in [:clicker :proposal :title] (.-title v))
-                                            (swap! !state-supplier assoc-in [:clicker :proposal :click] true))
-                          :columns [{:name :Title :selector (fn [row] (.-title row))}
-                                    {:name :Price :selector (fn [row] (.-price row))}
+           [:> DataTable {:pointerOnHover true
+                          :allowRowEvents true
+                          :responsive true
+                          :theme         "dark"
+                          :highlightOnHover true
+                          :pagination true
+                          :onRowClicked (fn [v] (swap! !state-supplier assoc-in [:clicker :proposal :title] (.-title v))
+                                          (swap! !state-supplier assoc-in [:clicker :proposal :click] true))
+                          :columns [
+                                    {:name :Title :style {:background-color "green"} :selector (fn [row] (.-title row))}
+                                    {:name :Price :sortable true :selector (fn [row] (.-price row))}
                                     {:name :Date :selector (fn [row] (.-timestamp row))}
                                     {:name :Customer :selector (fn [row] (.-customer row))}] :data data}]))
 #?(:clj (defn proposal-data [db company]
           (vec (map (fn [[id title price timestamp customer]]
-                      {:id      id
-                       :title   title
+                      {:id        id
+                       :title     title
                        :price price
                        :timestamp (if (and
                                         (and
@@ -210,6 +216,11 @@
           (binding [conn @(requiring-resolve 'user/datomic-conn)]
             (binding [db (dt/db conn)]
               (e/client
+                (if (nil? (e/server (get-in e/*http-request* [:headers "cookie"])))
+                  (.reload js/window.location))
+                (if (e/server (:supplier (app.customer/login-credentials)))
+                  nil
+                  (history/navigate! history/!history [:app.main/supplier-page]))
                 (let [state (e/watch !state-supplier)]
                   (if (:click (:proposal (:clicker state)))
                     (history/navigate! history/!history [:app.main/customer-project-detail (e/server (ffirst (dt/q '[:find (pull ?e [*])
@@ -220,6 +231,8 @@
                   li {float: left;}
                   li a {color: white; padding: 10px 20px; display: inline-block; text-align: center; text-decoration: none;}
                   .home {background-color: darkred;}
+                  .rdt_Table {color: red;}
+
                   li a:hover {
                   background-color: #405d27;
                   legend {font-size: 20px; font-style: italic;} p {margin-bottom: 0}
@@ -239,7 +252,10 @@
                   (dom/div
 
                     (dom/h3 (dom/text "Proposals"))
-                    (with-reagent proposal-table (clj->js (e/server (proposal-data db name)))))))))))
+
+                    (dom/div (dom/props {:class "test"})
+                             (with-reagent proposal-table (clj->js (e/server (proposal-data db name))))))))))))
+
 
 #?(:clj (defn admin-user-data [db company]
           (vec (map (fn [[id user password admin]]
@@ -329,20 +345,20 @@
 
               (dom/text m)))))
 #?(:cljs (defn proposal-table-edit [[data]]
-           [:> DataTable {:allowRowEvents true
-                          :selectableRows true
-                          :pagination true
-                          :onRowClicked   (fn [v] (swap! !state-supplier assoc-in [:clicker :proposal :title] (.-title v))
-                                            (swap! !state-supplier assoc-in [:clicker :proposal :click] true))
-                          :columns [{:name :Title :sortable true :selector (fn [row] (.-title row))}
-                                    {:name :Price :sortable true :selector (fn [row] (.-price row))}
-                                    {:name :Date :sortable true :selector (fn [row] (.-timestamp row))}
-                                    {:name :Customer :button true :ignoreRowClick true :cell (fn [v]
-                                                                                               (println v)
-                                                                                               (r/as-element
-                                                                                                 [:a {:href    "#"
-                                                                                                      :onClick (fn [] (swap! !state-supplier assoc-in [:admin-company-detail] {:click true :company (.-customer v)}))}
-                                                                                                  (.-customer v)]))}] :data data}]))
+           [:> DataTable  {:allowRowEvents true
+                           :selectableRows true
+                           :pagination true
+                           :onRowClicked   (fn [v] (swap! !state-supplier assoc-in [:clicker :proposal :title] (.-title v))
+                                             (swap! !state-supplier assoc-in [:clicker :proposal :click] true))
+                           :columns [{:name :Title :sortable true :selector (fn [row] (.-title row))}
+                                     {:name :Price :sortable true :selector (fn [row] (.-price row))}
+                                     {:name :Date :sortable true :selector (fn [row] (.-timestamp row))}
+                                     {:name :Customer :button true :ignoreRowClick true :cell (fn [v]
+                                                                                                (println v)
+                                                                                                (r/as-element
+                                                                                                  [:a {:href    "#"
+                                                                                                       :onClick (fn [] (swap! !state-supplier assoc-in [:admin-company-detail] {:click true :company (.-customer v)}))}
+                                                                                                   (.-customer v)]))}] :data data}]))
 
 (e/defn ProposalEdit [m]
         (e/client (dom/text m)))

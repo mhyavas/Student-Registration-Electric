@@ -12,8 +12,8 @@
         ch.qos.logback/logback-classic {:mvn/version "1.2.11"}
         io.github.nextjournal/clerk {:mvn/version "0.13.842"}
         reagent/reagent {:mvn/version "1.2.0"}
-        ring-basic-authentication/ring-basic-authentication {:mvn/version "1.1.1"}
-        }
+        ring-basic-authentication/ring-basic-authentication {:mvn/version "1.1.1"}}
+
  :mvn/repos {"cognitect-dev-tools"
              {:url "https://dev-tools.cognitect.com/maven/releases/"}}
  :aliases {:dev

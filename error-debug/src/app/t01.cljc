@@ -3,6 +3,7 @@
   #?(:cljs (:require-macros [app.t01 :refer [with-reagent]]))
   (:require contrib.ednish
             clojure.edn
+            contrib.str
             [hyperfiddle.electric :as e]
             [hyperfiddle.electric-dom2 :as dom]
             [hyperfiddle.history :as history]
@@ -14,6 +15,9 @@
             #?(:cljs ["react-dom/client" :as ReactDom])))
 
 
+
+(def !state (atom false))
+1
 #?(:cljs (defn create-root
            "See https://reactjs.org/docs/react-dom-client.html#createroot"
            ([node] (create-root node (str (gensym))))
@@ -30,9 +34,8 @@
 
 
 #?(:cljs (defn IMG [url user]
-           [:div 
-            [:img {:onClick (fn [] (apply (.-log js/console) "test")
-                              (do (history/navigate!. history/!history [:test1 user]))) :src url :width 50 :style {:border-radius "50%"}}]
+           [:div
+            [:img {:onClick (fn [] (reset! !state true)) :src url :width 50 :style {:border-radius "50%"}}]
             [:p {:style {:font-size "15px"}}  user]]))
 
 
@@ -41,7 +44,12 @@
 
 (e/defn app01 []
         (e/client
-          (with-reagent IMG "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"  "input-test")
+          (let [button_test (e/watch !state)]
+            (if button_test
+              (history/navigate! history/!history [::test1 "input-test"]))
+
+
+           (with-reagent IMG "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png" "input-test"))
           (dom/text "Test1 Hello")))
 
 (e/defn app02 [input]

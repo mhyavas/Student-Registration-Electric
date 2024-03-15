@@ -38,7 +38,7 @@
 
            [text-field
             {:id        :textarea-autosize
-             :label     "Autosized textarea"
+             :label     "Text Area Test"
              :on-change (fn [e]
                           (reset! select-state (js->clj (.. e -target -value)))
                           (apply (.-log js/console) (.. e -target -value)))

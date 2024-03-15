@@ -60,6 +60,7 @@
                              db)))))))
 
 #?(:cljs (defn customer-table [data]
+           #_[:link {:rel "stylesheet" :href "react-day-picker/dist/style.css"}]
            [:> DataTable {:allowRowEvents true
                           :onRowClicked (fn [v] (swap! !admin-state assoc-in [:table-clickers :customer :company] (.-company v))
                                           (swap! !admin-state assoc-in [:table-clickers :customer :click] true))
@@ -281,6 +282,7 @@
                              db company title)))))))
 #?(:cljs (defn proposal-detail-table [data]
            [:> DataTable {:allowRowEvents true
+                           :pagination true
                           :columns              [{:name :Title :selector (fn [row] (.-title row))}
                                                  {:name :Status :selector (fn [row] (.-status row))}
                                                  {:name :Create_Date :selector (fn [row] (.-create_date row))}

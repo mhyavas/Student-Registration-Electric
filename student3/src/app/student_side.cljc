@@ -170,10 +170,10 @@
                                     (dom/div (ui4/button (e/fn [] (set-id!)
                                                                (create!)
                                                                #_(apply (.-log js/console) (:names state))
-                                                               (e/server (CreateStudent (:id (last (vals (get-in state [:names])))) (:name (last (vals (get-in state [:names])))) (:department (last (vals (get-in state [:names])))) !conn))) (dom/text "Create")))
+                                                               (e/server (CreateStudent (:id (last (vals (get-in state [:names])))) (:name (last (vals (get-in state [:names])))) (:department (last (vals (get-in state [:names])))) !conn))) (dom/text "Create"))))
 
 
-                                    )
+
                            (dom/div (dom/props
                                       {:style {:grid-area             "l"
                                                :display               :grid
@@ -182,8 +182,8 @@
                                     (dom/text "Student Filter by department name from DB")
                                     (let [!filter-dept (atom ""), filter-dept (e/watch !filter-dept)]
                                       (dom/span  (dom/text "Department:"))
-                                      (ui4/input filter-dept (e/fn [v] (reset! !filter-dept v))
-                                                 )
+                                      (ui4/input filter-dept (e/fn [v] (reset! !filter-dept v)))
+
 
                                       (dom/table (dom/props {:style {:grid-area "t"}})
                                                  (dom/th (dom/text "Id"))
@@ -197,10 +197,10 @@
 
                                                                   (dom/td (dom/text (:student/id value)))
                                                                   (dom/td (dom/text (:student/name value)))
-                                                                  (dom/td (dom/text (:student/department value))))
-                                                          ))
-                                                 ))
-                                    ))))))))
+                                                                  (dom/td (dom/text (:student/department value))))))))))))))))
+
+
+
 
 
 

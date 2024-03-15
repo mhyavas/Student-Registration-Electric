@@ -102,17 +102,17 @@
             (let [state (e/watch !state-cs)]
                  (let [customer (:customer state)]
                       (dom/div
-                           (dom/span (dom/text "Customer Name"))
-                           (ui4/input (:name customer) (e/fn [v] (swap! !state-cs assoc-in [:customer :name] v))))
+                          (dom/span (dom/text "Customer Name"))
+                          (ui4/input (:name customer) (e/fn [v] (swap! !state-cs assoc-in [:customer :name] v))))
 
 
                       (dom/div
                            (ui4/button (e/fn []
-                                             (e/server (dt/transact conn {:tx-data [{:customer/id (next-customer-id (dt/db conn))}]
-                                                                          :customer/name (:name customer)})))
+                                             (e/server (dt/transact conn {:tx-data [{:customer/id (next-customer-id (dt/db conn))
+                                                                                     :customer/name (:name customer)}]})))
+
                                        (dom/text "Create Customer"))))))))
-#?(:cljs (defn button-test []
-           [:> AwesomeButton/AwesomeButton {:onPress (fn [] (history/navigate! history/!history [::customer-page])) :type "primary" :size "medium" :button-primary-color "#1e88e5" :button-primary-color-dark "#1360a4"} "TEST"]))
+
 
 (e/defn MainPage []
         (e/client
@@ -120,8 +120,8 @@
           (dom/div
             (history/link [::create-supplier] (dom/text "Create Supplier")))
           (dom/div
-            (history/link [::create-customer] (dom/text "Create Customer")))
-          (with-reagent button-test)))
+            (history/link [::create-customer] (dom/text "Create Customer")))))
+
 
 (e/defn Page [[page x]]
         (e/client
@@ -136,6 +136,7 @@
                   background-color: #405d27;
                   legend {font-size: 25px; font-style: italic;} p {margin-bottom: 0}
                   }
+
 
                   tr {vertical-align: inherit; display: table-row}"))
 

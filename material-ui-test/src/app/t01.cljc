@@ -1,9 +1,10 @@
 (ns app.t01
+  #?(:cljs (:import [goog.math Long]))
   #?(:cljs (:require-macros [app.t01 :refer [with-reagent]]))
   #?(:cljs (:require-macros [reagent-mui.util :refer [react-component]]))
   (:require [hyperfiddle.electric :as e]
             [hyperfiddle.electric-dom2 :as dom]
-            [hyperfiddle.history :as router]
+            [hyperfiddle.history :as history]
             #?(:cljs ["react" :as react])
             #?(:cljs ["slate" :refer [createEditor]])
             #?(:cljs ["slate-react" :refer [Slate Editable withReact]])
@@ -51,3 +52,11 @@
           (with-reagent btn-test)
           #_(with-reagent menu)
           (dom/text "Test1 Hello")))
+
+
+
+
+
+
+
+

@@ -37,6 +37,7 @@
                   response                     ; send response to trigger auth prompt
                   (-> (res/status response 302) ; redirect
                     (res/header "Location" (get-in ring-req [:headers "referer"]))))) ; redirect to where the auth originated
+      "/" (res/set-cookie (next-handler ring-req) "crendetials" ""  {:http-only true})
       ;; For any other route, delegate to next middleware
       (next-handler ring-req))))
 
@@ -87,7 +88,8 @@
   (fn [next-handler]
     (-> (cookies/wrap-cookies next-handler) ; makes cookies available to Electric app
       (wrap-reject-stale-client)
-      (wrap-params))))
+      (wrap-params))
+    ))
 
 (defn not-found-handler [_ring-request]
   (-> (res/not-found "Not found")
@@ -130,6 +132,7 @@
                                                     (auth/basic-authentication-request ring-req authenticate)))))}}
                      config))
           final-port (-> server (.getConnectors) first (.getPort))]
+
       (println "\n👉 App server available at" (str "http://" (:host config) ":" final-port "\n"))
       server)
 
